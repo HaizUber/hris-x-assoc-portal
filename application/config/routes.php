@@ -54,3 +54,8 @@ $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
 $route['apps'] = 'Apps/Pages/apps';
+
+$route['leave/home'] = 'apps/LeaveController/home';
+$route['leave/submit'] = 'apps/LeaveController/submitLeave';
+
+$route['submitLeave'] = 'Apps/LeaveController/submitLeave';
