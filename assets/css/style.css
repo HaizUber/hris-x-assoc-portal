@@ -1,0 +1,136 @@
+.wrapper {
+	font-family: "Open Sans", sans-serif;
+	background: #f6f9ff;
+	color: #444444;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: "Nunito", sans-serif;
+}
+
+a {
+	text-decoration: none;
+}
+
+.autolink a {
+	text-decoration: underline;
+}
+
+.nav-item>img.feu-logo {
+	min-width: 50px;
+	max-width: 300px;
+}
+
+input:focus+label {
+	color: #28a745;
+
+}
+
+.form-control:focus {
+	border-color: #28a745;
+	box-shadow: 0 0 0 0.1rem rgba(40, 167, 69, 0.25);
+}
+
+.form-select:focus {
+	border-color: #28a745;
+	box-shadow: 0 0 0 0.1rem rgba(40, 167, 69, 0.25);
+}
+
+.table_budget thead tr th,
+.ins_table thead tr th,
+.update_budget_table thead tr th,
+.table_notification thead tr th {
+	border-bottom: 1px solid #dcdcdc;
+}
+
+.nav-tabs .nav-link,
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-link:hover {
+	border: 0;
+	color: gray;
+}
+
+.request_table .nav-item,
+.my_list_table .nav-item {
+	text-align: center;
+	width: 33.3%;
+}
+
+.card-title {
+	padding: 10px 0 5px 0;
+	font-size: 18px;
+	font-weight: 500;
+	font-family: "Poppins", sans-serif;
+}
+
+label {
+	font-family: "Nunito", sans-serif;
+}
+
+@media screen and (max-width: 728px) {
+	.nav-item>img.feu-logo {
+		display: none;
+	}
+
+	.bs-stepper-line {
+		display: none;
+	}
+
+	.bs-stepper-header {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: flex-start;
+	}
+}
+
+.pagination .page-item.active .page-link {
+	background-color: #28a745;
+}
+
+div.dataTables_wrapper div.dataTables_paginate ul.pagination .page-item.active .page-link:focus {
+	background-color: #28a745;
+}
+
+.pagination .page-item.active .page-link:hover {
+	background-color: #28a745;
+}
+
+div.dt-button-collection .active {
+	background-color: #28a745;
+}
+
+.breadcrumb {
+	font-family: "Nunito", sans-serif;
+	font-weight: 600;
+}
+
+.breadcrumb .breadcrumb-item a {
+	color: #28a745;
+}
+
+/* .form-floating label {
+	color: #28a745;
+} */
+
+.overlay {
+	display: none;
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(246, 249, 255, .5);
+	z-index: 998;
+}
+
+.overlay .spinner {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+	z-index: 999;
+}
