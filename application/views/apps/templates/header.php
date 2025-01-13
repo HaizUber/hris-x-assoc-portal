@@ -109,9 +109,9 @@
 							</ul>
 							<ul class="nav nav-treeview">
 								<li class="nav-item">
-									<a href="" class="nav-link">
+								<a href="<?php echo base_url('leave/home') ?>" class="nav-link">
 										<i class="far fa-circle nav-icon"></i>
-										<p>PCF</p>
+										<p>LEAVE</p>
 									</a>
 								</li>
 							</ul>

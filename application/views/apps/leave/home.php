@@ -6,39 +6,64 @@
     <title>File Leave</title>
     <link rel="stylesheet" href="<?= base_url('assets/css/style.css'); ?>">
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-top: 50px;
+        }
 
         h1 {
             text-align: center;
-            font-size: 20px;
+            font-size: 24px;
             color: #333;
             margin-bottom: 20px;
         }
+
         table {
             width: 100%;
+            border-spacing: 10px;
         }
+
         table td {
-            padding: 10px;
+            padding: 8px;
             vertical-align: middle;
         }
+
         table td:first-child {
             text-align: right;
             font-weight: bold;
             color: #333;
         }
+
         table td:last-child {
             text-align: left;
         }
+
         input, select, textarea, button {
-            width: 90%;
+            width: 100%;
             padding: 8px;
             margin: 5px 0;
             border: 1px solid #ccc;
             border-radius: 4px;
             box-sizing: border-box;
         }
+
         textarea {
             resize: vertical;
         }
+
         button {
             width: auto;
             padding: 10px 20px;
@@ -48,17 +73,38 @@
             border-radius: 4px;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #0056b3;
         }
+
         .note {
             font-size: 12px;
             color: red;
             margin-top: 10px;
         }
+
         .actions {
             text-align: center;
             margin-top: 20px;
+        }
+
+        .success, .error {
+            text-align: center;
+            font-size: 14px;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .success {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .error {
+            background-color: #dc3545;
+            color: #fff;
         }
     </style>
 </head>
@@ -69,6 +115,12 @@
         <?php if ($this->session->flashdata('success')) : ?>
             <p class="success"><?= $this->session->flashdata('success'); ?></p>
         <?php endif; ?>
+        
+        <!-- Error Message -->
+        <?php if ($this->session->flashdata('error')) : ?>
+            <p class="error"><?= $this->session->flashdata('error'); ?></p>
+        <?php endif; ?>
+
 
         <form action="<?= site_url('leave/submit'); ?>" method="post">
             <table>
@@ -111,48 +163,48 @@
                     </td>
                 </tr>
                 <tr>
-                <td>
-                    Fractional Leave:
-                    <span style="margin-left: 10px; display: inline-flex; align-items: center;">
+                    <td colspan="2" style="text-align: left; padding-left: 10px;">
+                    <label for="lvaFractional" style="margin-right: 10px;">Fractional Leave:</label>
+                    <span style="display: inline-flex; align-items: center;">
                     <input type="checkbox" name="lvaFractional" id="lvaFractional" style="margin-right: 5px;">
                     <label for="lvaFractional" style="margin: 0;">Check for fractional leave</label>
                     </span>
-                </td>
-                </tr>
-
-
-                <tr>
-                    <td>Start Time:</td>
-                    <td>
-                        <select name="startTimeHour">
-                            <?php for ($i = 0; $i <= 23; $i++) : ?>
-                                <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
-                            <?php endfor; ?>
-                        </select>
-                        :
-                        <select name="startTimeMinute">
-                            <?php for ($i = 0; $i <= 59; $i++) : ?>
-                                <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
-                            <?php endfor; ?>
-                        </select>
                     </td>
                 </tr>
-                <tr>
-                    <td>End Time:</td>
-                    <td>
-                        <select name="endTimeHour">
-                            <?php for ($i = 0; $i <= 23; $i++) : ?>
-                                <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
-                            <?php endfor; ?>
-                        </select>
-                        :
-                        <select name="endTimeMinute">
-                            <?php for ($i = 0; $i <= 59; $i++) : ?>
-                                <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
-                            <?php endfor; ?>
-                        </select>
-                    </td>
-                </tr>
+                <tr id="fractionalLeaveRow" style="display: none;">
+    <td>Start Time:</td>
+    <td>
+        <select name="startTimeHour" id="startTimeHour">
+            <?php for ($i = 0; $i <= 23; $i++) : ?>
+                <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
+            <?php endfor; ?>
+        </select>
+        :
+        <select name="startTimeMinute" id="startTimeMinute">
+            <?php for ($i = 0; $i <= 59; $i++) : ?>
+                <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
+            <?php endfor; ?>
+        </select>
+    </td>
+</tr>
+<tr id="fractionalLeaveEndTimeRow" style="display: none;">
+    <td>End Time:</td>
+    <td>
+        <select name="endTimeHour" id="endTimeHour">
+            <?php for ($i = 0; $i <= 23; $i++) : ?>
+                <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
+            <?php endfor; ?>
+        </select>
+        :
+        <select name="endTimeMinute" id="endTimeMinute">
+            <?php for ($i = 0; $i <= 59; $i++) : ?>
+                <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
+            <?php endfor; ?>
+        </select>
+    </td>
+</tr>
+
+
             </table>
             <div class="note">
                 Note: Indicate No. of days for full leave application, otherwise click on the fractional leave checkbox for fractional leave and indicate the start and end time.
@@ -165,3 +217,32 @@
     </div>
 </body>
 </html>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const fractionalLeaveCheckbox = document.getElementById('lvaFractional');
+        const fractionalLeaveRow = document.getElementById('fractionalLeaveRow');
+        const fractionalLeaveEndTimeRow = document.getElementById('fractionalLeaveEndTimeRow');
+
+        // Check the initial state of the checkbox and toggle fields accordingly
+        if (fractionalLeaveCheckbox.checked) {
+            fractionalLeaveRow.style.display = 'table-row';
+            fractionalLeaveEndTimeRow.style.display = 'table-row';
+        } else {
+            fractionalLeaveRow.style.display = 'none';
+            fractionalLeaveEndTimeRow.style.display = 'none';
+        }
+
+        // Add event listener to toggle visibility based on checkbox
+        fractionalLeaveCheckbox.addEventListener('change', function () {
+            if (this.checked) {
+                fractionalLeaveRow.style.display = 'table-row';
+                fractionalLeaveEndTimeRow.style.display = 'table-row';
+            } else {
+                fractionalLeaveRow.style.display = 'none';
+                fractionalLeaveEndTimeRow.style.display = 'none';
+            }
+        });
+    });
+</script>
+

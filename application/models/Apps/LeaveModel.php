@@ -22,6 +22,6 @@ class LeaveModel extends CI_Model
     public function fileLeave($data)
     {
         // Insert leave data into the correct table
-        return $this->db->insert('tblleavefile', $data); // Make sure to use the correct table name
+        return $this->db->insert('tblleavefile', $data); 
     }
 }
