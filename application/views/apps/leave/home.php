@@ -224,39 +224,39 @@
 </html>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const fractionalLeaveCheckbox = document.getElementById('lvaFractional');
-        const fractionalLeaveRow = document.getElementById('fractionalLeaveRow');
-        const fractionalLeaveEndTimeRow = document.getElementById('fractionalLeaveEndTimeRow');
+document.addEventListener('DOMContentLoaded', function () {
+    const fractionalLeaveCheckbox = document.getElementById('lvaFractional');
+    const fractionalLeaveRow = document.getElementById('fractionalLeaveRow');
+    const fractionalLeaveEndTimeRow = document.getElementById('fractionalLeaveEndTimeRow');
+    const medCertField = document.getElementById('medCertField');
+    const clearFormButton = document.querySelector('button[type="reset"]');
 
-        // Check the initial state of the checkbox and toggle fields accordingly
-        if (fractionalLeaveCheckbox.checked) {
+    // Check the initial state of the checkbox and toggle fields accordingly
+    if (fractionalLeaveCheckbox.checked) {
+        fractionalLeaveRow.style.display = 'table-row';
+        fractionalLeaveEndTimeRow.style.display = 'table-row';
+    } else {
+        fractionalLeaveRow.style.display = 'none';
+        fractionalLeaveEndTimeRow.style.display = 'none';
+    }
+
+    // Add event listener to toggle visibility based on checkbox
+    fractionalLeaveCheckbox.addEventListener('change', function () {
+        if (this.checked) {
             fractionalLeaveRow.style.display = 'table-row';
             fractionalLeaveEndTimeRow.style.display = 'table-row';
         } else {
             fractionalLeaveRow.style.display = 'none';
             fractionalLeaveEndTimeRow.style.display = 'none';
         }
+    });
 
-        // Add event listener to toggle visibility based on checkbox
-        fractionalLeaveCheckbox.addEventListener('change', function () {
-            if (this.checked) {
-                fractionalLeaveRow.style.display = 'table-row';
-                fractionalLeaveEndTimeRow.style.display = 'table-row';
-            } else {
-                fractionalLeaveRow.style.display = 'none';
-                fractionalLeaveEndTimeRow.style.display = 'none';
-            }
-        });
-
-            // Function to toggle Medical Certificate field visibility
+    // Function to toggle Medical Certificate field visibility
     function toggleMedCertField() {
         const leaveType = document.getElementById('lvaType').value;
         const dateFrom = new Date(document.getElementById('lvaDateFrom').value);
         const dateTo = new Date(document.getElementById('lvaDateTo').value);
         const duration = (dateTo - dateFrom) / (1000 * 60 * 60 * 24) + 1;
-
-        const medCertField = document.getElementById('medCertField');
 
         // Show or hide the field
         if (leaveType === 'SL' && duration > 2) {
@@ -270,6 +270,14 @@
     document.getElementById('lvaType').addEventListener('change', toggleMedCertField);
     document.getElementById('lvaDateFrom').addEventListener('change', toggleMedCertField);
     document.getElementById('lvaDateTo').addEventListener('change', toggleMedCertField);
+
+    // Reset medCertField visibility on form reset
+    clearFormButton.addEventListener('click', function () {
+        medCertField.style.display = 'none';
+        fractionalLeaveRow.style.display = 'none';
+        fractionalLeaveEndTimeRow.style.display = 'none';
     });
+});
+
 </script>
 
