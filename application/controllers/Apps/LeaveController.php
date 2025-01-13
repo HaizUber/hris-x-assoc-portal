@@ -57,6 +57,21 @@ class LeaveController extends CI_Controller
                 redirect('leave/home');
             }
         }
+
+            // Validation for Leave Types - Sick Leave (SL)
+    if ($formData['lvaType'] == 'SL') {
+        $dateFrom = strtotime($formData['lvaDateFrom']);
+        $dateTo = strtotime($formData['lvaDateTo']);
+        $duration = ($dateTo - $dateFrom) / (60 * 60 * 24) + 1; // Convert to days (inclusive of the start date)
+
+        if ($duration > 2) {
+            // Check if a medical certificate is uploaded
+            if (empty($_FILES['medCert']['name'])) {
+                $this->session->set_flashdata('error', 'Medical Certificate is required for Sick Leave greater than 2 days');
+                redirect('leave/home');
+            }
+        }
+    }
     
         // If the fractional leave checkbox is checked, add start and end time
         if ($this->input->post('lvaFractional')) {

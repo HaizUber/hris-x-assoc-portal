@@ -162,6 +162,13 @@
                         <input type="number" name="lvaHours" id="lvaHours">
                     </td>
                 </tr>
+                <div id="medCertField" style="display: none;">
+                <div class="note">
+                    Note: If Sick Leave is more than Two(2) days please submit a medical certificate (pdf)
+                </div>
+                <label for="medCert">Medical Certificate (PDF):</label>
+                <input type="file" name="medCert" id="medCert" accept="application/pdf">
+                </div>
                 <tr>
                     <td colspan="2" style="text-align: left; padding-left: 10px;">
                     <label for="lvaFractional" style="margin-right: 10px;">Fractional Leave:</label>
@@ -203,8 +210,6 @@
         </select>
     </td>
 </tr>
-
-
             </table>
             <div class="note">
                 Note: Indicate No. of days for full leave application, otherwise click on the fractional leave checkbox for fractional leave and indicate the start and end time.
@@ -243,6 +248,28 @@
                 fractionalLeaveEndTimeRow.style.display = 'none';
             }
         });
+
+            // Function to toggle Medical Certificate field visibility
+    function toggleMedCertField() {
+        const leaveType = document.getElementById('lvaType').value;
+        const dateFrom = new Date(document.getElementById('lvaDateFrom').value);
+        const dateTo = new Date(document.getElementById('lvaDateTo').value);
+        const duration = (dateTo - dateFrom) / (1000 * 60 * 60 * 24) + 1;
+
+        const medCertField = document.getElementById('medCertField');
+
+        // Show or hide the field
+        if (leaveType === 'SL' && duration > 2) {
+            medCertField.style.display = 'block';
+        } else {
+            medCertField.style.display = 'none';
+        }
+    }
+
+    // Add event listeners to relevant fields
+    document.getElementById('lvaType').addEventListener('change', toggleMedCertField);
+    document.getElementById('lvaDateFrom').addEventListener('change', toggleMedCertField);
+    document.getElementById('lvaDateTo').addEventListener('change', toggleMedCertField);
     });
 </script>
 
