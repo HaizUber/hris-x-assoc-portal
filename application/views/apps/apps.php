@@ -31,7 +31,7 @@
 			</div>
 			<div class="card text-center" style="width: 16rem;">
 				<a href="<?php echo base_url('leave/home') ?>">
-					<img class="card-img-top" src="<?php echo base_url('assets/PCAF.png'); ?>" alt="PCAF" style="padding: 20px;">
+					<img class="card-img-top" src="<?php echo base_url('assets/reservation.png'); ?>" alt="PCAF" style="padding: 20px;">
 					<div class="card-body">
 						<h6 class="card-text font-weight-bold">LEAVE</h6>
 						<h6>FILE FOR LEAVE</h6>

@@ -124,6 +124,12 @@
 
 
         <form action="<?= site_url('leave/submit'); ?>" method="post">
+            <h1>File Leave</h1>
+        
+            <!-- Redirect Link to Leave Balance -->
+        <p style="text-align: right; margin-top: 20px;">
+            <a href="<?= site_url('leave/balance'); ?>" style="color: #007bff; text-decoration: underline;">View Leave Balance</a>
+        </p>
             <table>
             <tr>
                 <td>Employee ID:</td>
@@ -160,7 +166,7 @@
                 <tr>
                     <td>Total # of Hours:</td>
                     <td>
-                        <input type="number" name="lvaHours" id="lvaHours">
+                        <input type="number" name="lva" id="lva">
                     </td>
                 </tr>
                 <div id="medCertField" style="display: none;">
@@ -180,37 +186,37 @@
                     </td>
                 </tr>
                 <tr id="fractionalLeaveRow" style="display: none;">
-    <td>Start Time:</td>
-    <td>
-        <select name="startTimeHour" id="startTimeHour">
-            <?php for ($i = 0; $i <= 23; $i++) : ?>
-                <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
-            <?php endfor; ?>
-        </select>
-        :
-        <select name="startTimeMinute" id="startTimeMinute">
-            <?php for ($i = 0; $i <= 59; $i++) : ?>
-                <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
-            <?php endfor; ?>
-        </select>
-    </td>
-</tr>
-<tr id="fractionalLeaveEndTimeRow" style="display: none;">
-    <td>End Time:</td>
-    <td>
-        <select name="endTimeHour" id="endTimeHour">
-            <?php for ($i = 0; $i <= 23; $i++) : ?>
-                <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
-            <?php endfor; ?>
-        </select>
-        :
-        <select name="endTimeMinute" id="endTimeMinute">
-            <?php for ($i = 0; $i <= 59; $i++) : ?>
-                <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
-            <?php endfor; ?>
-        </select>
-    </td>
-</tr>
+                    <td>Start Time:</td>
+                    <td>
+                    <select name="startTimeHour" id="startTimeHour">
+                        <?php for ($i = 0; $i <= 23; $i++) : ?>
+                            <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
+                        <?php endfor; ?>
+                    </select>
+                        :
+                    <select name="startTimeMinute" id="startTimeMinute">
+                        <?php for ($i = 0; $i <= 59; $i++) : ?>
+                            <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
+                        <?php endfor; ?>
+                    </select>
+                    </td>
+                </tr>
+            <tr id="fractionalLeaveEndTimeRow" style="display: none;">
+                <td>End Time:</td>
+                <td>
+                <select name="endTimeHour" id="endTimeHour">
+                <?php for ($i = 0; $i <= 23; $i++) : ?>
+                    <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
+                <?php endfor; ?>
+                </select>
+                :
+                <select name="endTimeMinute" id="endTimeMinute">
+                <?php for ($i = 0; $i <= 59; $i++) : ?>
+                    <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT); ?>"><?= str_pad($i, 2, '0', STR_PAD_LEFT); ?></option>
+                <?php endfor; ?>
+                </select>
+                </td>
+            </tr>
             </table>
             <div class="note">
                 Note: Indicate No. of days for full leave application, otherwise click on the fractional leave checkbox for fractional leave and indicate the start and end time.

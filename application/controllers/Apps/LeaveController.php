@@ -94,6 +94,14 @@ class LeaveController extends CI_Controller
         }
         
         redirect('leave/home');
+    }
+    
+    public function viewBalance()
+    {
+        $data['leaveBalance'] = $this->LeaveModel->getAllLeaveApplications(); 
+        $this->load->view('apps/templates/header', $data);  
+        $this->load->view('apps/leave/leaveBalance', $data);  
+        $this->load->view('apps/templates/footer');  
     }    
     
 }
