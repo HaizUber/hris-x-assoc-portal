@@ -22,6 +22,7 @@
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             margin-top: 50px;
+            margin-bottom: 50px;
         }
 
         h1 {
