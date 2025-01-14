@@ -57,5 +57,6 @@ $route['apps'] = 'Apps/Pages/apps';
 
 $route['leave/home'] = 'apps/LeaveController/home';
 $route['leave/submit'] = 'apps/LeaveController/submitLeave';
+$route['leave/balance'] = 'apps/LeaveController/viewBalance';
 
 $route['submitLeave'] = 'Apps/LeaveController/submitLeave';

@@ -24,4 +24,27 @@ class LeaveModel extends CI_Model
         // Insert leave data into the correct table
         return $this->db->insert('tblleavefile', $data); 
     }
+
+    public function getAllLeaveApplications() {
+        $this->db->select('
+            lvaFiledNo, 
+            empID, 
+            lvaDateFiled, 
+            lvaDateFrom, 
+            lvaDateTo, 
+            lvaType, 
+            lvaReason, 
+            lvaStatus, 
+            lvaSchoolYear, 
+            lvaApprovedBy, 
+            lvaComments, 
+            lvaFiledType, 
+            lvaStartTime, 
+            lvaEndTime
+        ');
+        $this->db->from('tblleavefile');
+        $query = $this->db->get();
+
+        return $query->result_array(); // Returns an associative array of data
+    }
 }
