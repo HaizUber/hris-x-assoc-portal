@@ -4,7 +4,7 @@
 			<div class="container-fluid">
 				<div class="row pb-2 pt-2">
 					<div class="col-sm-12 text-center">
-						<h4 class="m-0 font-weight-bold">DOCUMENT APPROVAL SYSTEM</h4>
+						<h4 class="m-0 font-weight-bold">HUMAN RESOURCES</h4>
 						<h6 class="font-weight-bold">DASHBOARD</h6>
 					</div>
 				</div>
@@ -30,11 +30,11 @@
 				</a>
 			</div>
 			<div class="card text-center" style="width: 16rem;">
-				<a href="">
+				<a href="<?php echo base_url('leave/home') ?>">
 					<img class="card-img-top" src="<?php echo base_url('assets/PCAF.png'); ?>" alt="PCAF" style="padding: 20px;">
 					<div class="card-body">
-						<h6 class="card-text font-weight-bold">PCF</h6>
-						<h6>PETTY CASH</h6>
+						<h6 class="card-text font-weight-bold">LEAVE</h6>
+						<h6>FILE FOR LEAVE</h6>
 						<small style="background-color: green; color: #fff; padding: 2px;">COMING SOON</small>
 					</div>
 				</a>
@@ -55,46 +55,6 @@
 					<div class="card-body">
 						<h6 class="card-text font-weight-bold">UAAPRF</h6>
 						<h6>USERS ACCESS AND ACCOUNTS</h6>
-						<small style="background-color: green; color: #fff; padding: 2px;">COMING SOON</small>
-					</div>
-				</a>
-			</div>
-			<div class="card text-center" style="width: 16rem;">
-				<a href="">
-					<img class="card-img-top" src="<?php echo base_url('assets/SSR.png'); ?>" alt="SSR" style="padding: 20px;">
-					<div class="card-body">
-						<h6 class="card-text font-weight-bold">SSR</h6>
-						<h6>SYSTEM AND SERVICES REQUISITION</h6>
-						<small style="background-color: green; color: #fff; padding: 2px;">COMING SOON</small>
-					</div>
-				</a>
-			</div>
-			<div class="card text-center" style="width: 16rem;">
-				<a href="">
-					<img class="card-img-top" src="<?php echo base_url('assets/BPF.png'); ?>" alt="BPF" style="padding: 20px;">
-					<div class="card-body">
-						<h6 class="card-text font-weight-bold">BPF</h6>
-						<h6>BUDGET PROPOSAL</h6>
-						<small style="background-color: green; color: #fff; padding: 2px;">COMING SOON</small>
-					</div>
-				</a>
-			</div>
-			<div class="card text-center" style="width: 16rem;">
-				<a href="">
-					<img class="card-img-top" src="<?php echo base_url('assets/LDRF.png'); ?>" alt="LDRF" style="padding: 20px;">
-					<div class="card-body">
-						<h6 class="card-text font-weight-bold">LDRF</h6>
-						<h6>LEARNING DEVELOPMENT</h6>
-						<small style="background-color: green; color: #fff; padding: 2px;">COMING SOON</small>
-					</div>
-				</a>
-			</div>
-			<div class="card text-center" style="width: 16rem;">
-				<a href="">
-					<img class="card-img-top" src="<?php echo base_url('assets/CSI.png'); ?>" alt="CSI" style="padding: 20px;">
-					<div class="card-body">
-						<h6 class="card-text font-weight-bold">CUSI</h6>
-						<h6>CUSTOMER SERVICE SATISFACTION</h6>
 						<small style="background-color: green; color: #fff; padding: 2px;">COMING SOON</small>
 					</div>
 				</a>
