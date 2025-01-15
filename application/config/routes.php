@@ -53,10 +53,22 @@ $route['default_controller'] = 'BaseController';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
+$route['login'] = 'BaseController/login';
+$route['auth/logout'] = 'BaseController/logout';
+
+
 $route['apps'] = 'Apps/Pages/apps';
+$route['leave/dashboard'] = 'apps/LeaveController/dashboard';
+
 
 $route['leave/home'] = 'apps/LeaveController/home';
 $route['leave/submit'] = 'apps/LeaveController/submitLeave';
-$route['leave/balance'] = 'apps/LeaveController/viewBalance';
+$route['leave/filedleave'] = 'apps/LeaveController/viewLeave';
+$route['leave/approve'] = 'apps/LeaveController/viewApprove';
 
-$route['submitLeave'] = 'Apps/LeaveController/submitLeave';
+$route['leave/cancelLeave/(:num)'] = 'apps/LeaveController/cancelLeave/$1';
+$route['leave/approveLeave/(:num)'] = 'apps/LeaveController/approveLeave/$1';
+$route['leave/disapproveLeave/(:num)'] = 'apps/LeaveController/disapproveLeave/$1';
+
+
+

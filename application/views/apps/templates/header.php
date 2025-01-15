@@ -93,84 +93,19 @@
 							</a>
 							<ul class="nav nav-treeview">
 								<li class="nav-item">
-									<a href="" class="nav-link">
-										<i class="far fa-circle nav-icon"></i>
-										<p>APF</p>
-									</a>
-								</li>
-							</ul>
-							<ul class="nav nav-treeview">
-								<li class="nav-item">
-									<a href="" class="nav-link">
-										<i class="far fa-circle nav-icon"></i>
-										<p>CRF</p>
-									</a>
-								</li>
-							</ul>
-							<ul class="nav nav-treeview">
-								<li class="nav-item">
-								<a href="<?php echo base_url('leave/home') ?>" class="nav-link">
+								<a href="<?php echo base_url('leave/dashboard') ?>" class="nav-link">
 										<i class="far fa-circle nav-icon"></i>
 										<p>LEAVE</p>
 									</a>
 								</li>
 							</ul>
-							<ul class="nav nav-treeview">
-								<li class="nav-item">
-									<a href="" class="nav-link">
-										<i class="far fa-circle nav-icon"></i>
-										<p>PRF</p>
-									</a>
+							<li class="nav-item">
+   								 <a href="<?php echo base_url('auth/logout'); ?>" class="nav-link">
+        							<i class="nav-icon fa fa-sign-out"></i>
+        							<p>Logout</p>
+    							</a>
 								</li>
-							</ul>
-							<ul class="nav nav-treeview">
-								<li class="nav-item">
-									<a href="" class="nav-link">
-										<i class="far fa-circle nav-icon"></i>
-										<p>UAAPRF</p>
-									</a>
-								</li>
-							</ul>
-							<ul class="nav nav-treeview">
-								<li class="nav-item">
-									<a href="" class="nav-link">
-										<i class="far fa-circle nav-icon"></i>
-										<p>SSR</p>
-									</a>
-								</li>
-							</ul>
-							<ul class="nav nav-treeview">
-								<li class="nav-item">
-									<a href="" class="nav-link">
-										<i class="far fa-circle nav-icon"></i>
-										<p>BPF</p>
-									</a>
-								</li>
-							</ul>
-							<ul class="nav nav-treeview">
-								<li class="nav-item">
-									<a href="" class="nav-link">
-										<i class="far fa-circle nav-icon"></i>
-										<p>LDRF</p>
-									</a>
-								</li>
-							</ul>
-							<ul class="nav nav-treeview">
-								<li class="nav-item">
-									<a href="" class="nav-link">
-										<i class="far fa-circle nav-icon"></i>
-										<p>CUSI</p>
-									</a>
-								</li>
-							</ul>
-						</li>
-						<li class="nav-item">
-							<a href="" class="nav-link">
-								<i class="nav-icon fa fa-sign-out"></i>
-								<p>Logout</p>
-							</a>
-						</li>
-					</ul>
+						</ul>
 				</nav>
 			</div>
 		</aside>

@@ -20,4 +20,18 @@ class Pages extends CI_Controller
 		$this->load->view('apps/' . $page, $data);
 		$this->load->view('apps/templates/footer');
 	}
+
+	public function leave_dashboard($page = 'dashboard')
+	{
+		if (!file_exists(APPPATH . 'views/apps/leave/' . $page . '.php')) {
+			show_404();
+		}
+	
+		$data['title'] = 'Leave Management Dashboard';
+	
+		$this->load->view('apps/templates/header', $data);
+		$this->load->view('apps/leave/' . $page, $data);
+		$this->load->view('apps/templates/footer');
+	}
+
 }
