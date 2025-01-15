@@ -64,7 +64,11 @@ $route['leave/dashboard'] = 'apps/LeaveController/dashboard';
 $route['leave/home'] = 'apps/LeaveController/home';
 $route['leave/submit'] = 'apps/LeaveController/submitLeave';
 $route['leave/filedleave'] = 'apps/LeaveController/viewLeave';
+$route['leave/approve'] = 'apps/LeaveController/viewApprove';
 
 $route['leave/cancelLeave/(:num)'] = 'apps/LeaveController/cancelLeave/$1';
+$route['leave/approveLeave/(:num)'] = 'apps/LeaveController/approveLeave/$1';
+$route['leave/disapproveLeave/(:num)'] = 'apps/LeaveController/disapproveLeave/$1';
+
 
 

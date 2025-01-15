@@ -33,13 +33,23 @@ class LeaveController extends CI_Controller
     public function dashboard()
 {
     // Load the view for the leave dashboard
-    $data['title'] = 'Leave Dashboard';
+    $data['title'] = 'Leave Management';
 
     $this->load->view('apps/templates/header', $data);
     $this->load->view('apps/leave/dashboard', $data);  // This will load the dashboard.php view
     $this->load->view('apps/templates/footer');
 }
 
+public function viewApprove()
+{
+    // Load the view for the leave dashboard
+    $data['title'] = 'Leave Management';
+    $data['leaveBalance'] = $this->LeaveModel->getAllLeaveApplications();
+
+    $this->load->view('apps/templates/header', $data);
+    $this->load->view('apps/leave/approveleave', $data);  // This will load the ApproveLeave.php view
+    $this->load->view('apps/templates/footer');
+}
 
     public function submitLeave()
     {
@@ -167,7 +177,63 @@ class LeaveController extends CI_Controller
             // Return failure response as JSON
             echo json_encode(['status' => 'error', 'message' => 'Failed to cancel the leave record.']);
         }
-    }       
+    }
+    
+    public function approveLeave($filedNo)
+    {
+        // Sanitize and validate the filedNo
+        $filedNo = htmlspecialchars(strip_tags($filedNo));  // Basic sanitization, improve if needed
+    
+        if (empty($filedNo)) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid leave request.']);
+            return;
+        }
+    
+        // Call the model's approve method
+        $result = $this->LeaveModel->approveLeave($filedNo);
+    
+        if ($result) {
+            // Return success response as JSON
+            echo json_encode(['status' => 'success', 'message' => 'Leave request approved successfully.']);
+        } else {
+            // Return failure response as JSON
+            echo json_encode(['status' => 'error', 'message' => 'Failed to approve the leave request.']);
+        }
+    }
+
+    public function disapproveLeave($filedNo)
+    {
+        // Get the raw POST data
+        $json_input = file_get_contents('php://input');
+        // Decode the JSON input
+        $input_data = json_decode($json_input, true);
+        
+        // Log the input data to check if we are receiving it correctly
+        log_message('info', 'Received data: ' . print_r($input_data, true));
+        
+        // Validate the data
+        $filedNo = htmlspecialchars(strip_tags($filedNo));  // Basic sanitization, improve if needed
+        $comment = isset($input_data['comment']) ? $input_data['comment'] : '';  // Get the comment
+    
+        // Log the comment
+        log_message('info', 'Received comment: ' . $comment . ' for filedNo: ' . $filedNo);
+    
+        if (empty($filedNo) || empty($comment)) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid leave request or comment.']);
+            return;
+        }
+    
+        // Call the model's disapprove method
+        $result = $this->LeaveModel->disapproveLeave($filedNo, $comment);
+    
+        if ($result) {
+            echo json_encode(['status' => 'success', 'message' => 'Leave request disapproved successfully.']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to disapprove the leave request.']);
+        }
+    }
+    
+        
     
 }
 
