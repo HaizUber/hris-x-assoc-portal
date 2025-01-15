@@ -58,27 +58,34 @@
 			</div>
 			<div class="card-body p-5">
 				<h4 class="login-box-msg">Sign in</h4>
-				<div class="input-group mb-3">
-					<div class="form-floating mb-3">
-						<input type="text" class="form-control" name="username" id="username" placeholder="Username">
-						<label for="username">Employee ID</label>
-					</div>
-				</div>
-				<div class="input-group mb-3">
-					<div class="form-floating">
-						<input type="password" class="form-control" name="password" id="password" placeholder="Password">
-						<label for="password">Password</label>
-					</div>
-				</div>
-				<span class="caps btn btn-danger mt-1 mb-2" id="caps">Caps Lock is ON.</span>
-				<input type="checkbox" onclick="togglePassword()" class="mb-3"> Show Password
-				<div class="row">
-					<div class="col-12">
-						<a href="<?php echo base_url('apps') ?>">
-							<button type="submit" onClick="this.disabled=true; this.innerText='Signing in...';" class="btn btn-success btn-block">Sign In</button>
-						</a>
-					</div>
-				</div>
+				<form action="<?php echo base_url('BaseController/login'); ?>" method="post">
+    <div class="input-group mb-3">
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" name="username" id="username" placeholder="Username" required>
+            <label for="username">Employee ID</label>
+        </div>
+    </div>
+    <div class="input-group mb-3">
+        <div class="form-floating">
+            <input type="password" class="form-control" name="password" id="password" placeholder="Password" required>
+            <label for="password">Password</label>
+        </div>
+    </div>
+    <span class="caps btn btn-danger mt-1 mb-2" id="caps">Caps Lock is ON.</span>
+    <input type="checkbox" onclick="togglePassword()" class="mb-3"> Show Password
+    <div class="row">
+        <div class="col-12">
+            <button type="submit" class="btn btn-success btn-block">Sign In</button>
+        </div>
+    </div>
+</form>
+
+<?php if ($this->session->flashdata('error')): ?>
+    <div class="alert alert-danger mt-3">
+        <?php echo $this->session->flashdata('error'); ?>
+    </div>
+<?php endif; ?>
+
 			</div>
 		</div>
 	</div>

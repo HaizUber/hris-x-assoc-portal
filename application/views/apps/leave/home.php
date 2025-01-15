@@ -128,15 +128,16 @@
         
             <!-- Redirect Link to Leave Balance -->
         <p style="text-align: right; margin-top: 20px;">
-            <a href="<?= site_url('leave/balance'); ?>" style="color: #007bff; text-decoration: underline;">View Leave Balance</a>
+            <a href="<?= site_url('leave/filedleave'); ?>" style="color: #007bff; text-decoration: underline;">View Filed Leave</a>
         </p>
             <table>
             <tr>
                 <td>Employee ID:</td>
-            <td>
-                <input type="text" name="empID" id="empID" required>
-            </td>
+                <td>
+                    <input type="text" name="empID" id="empID" value="<?php echo $this->session->userdata('employee_id'); ?>" readonly />
+                </td>
             </tr>
+
                 <tr>
                     <td>Type of Leave:</td>
                     <td>
