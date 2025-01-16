@@ -10,7 +10,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Dashboard Cards Section -->
         <div class="d-flex flex-wrap justify-content-center" style="padding: 0 10% 5% 10%;">
 
@@ -47,27 +47,36 @@
                 </a>
             </div>
 
-            <!-- Approve Leave Card -->
-            <div class="card text-center" style="width: 16rem;">
-                <a href="<?php echo base_url('leave/approve') ?>">
-                    <img class="card-img-top" src="<?php echo base_url('assets/ready.png'); ?>" alt="Approve Leave" style="padding: 20px;">
-                    <div class="card-body">
-                        <h6 class="card-text font-weight-bold">APPROVE LEAVE</h6>
-                        <h6>APPROVE OR REJECT LEAVE REQUESTS</h6>
-                    </div>
-                </a>
-            </div>
+            <?php 
+    log_message('debug', 'Is Approving Officer in View: ' . var_export($isApprovingOfficer, true));
+?>
 
-            <!-- Approve Leave Card -->
-            <div class="card text-center" style="width: 16rem;">
-                <a href="<?php echo base_url('leave/approve') ?>">
-                    <img class="card-img-top" src="<?php echo base_url('assets/employee.png'); ?>" alt="Approve Leave" style="padding: 20px;">
-                    <div class="card-body">
-                        <h6 class="card-text font-weight-bold">Employee Leave Balance</h6>
-                        <h6>MODIFY CURRENT EMPLOYEE LEAVE BALANCES</h6>
-                    </div>
-                </a>
+<!-- Approve Leave Card -->
+<?php if ($isApprovingOfficer): ?>
+    <div class="card text-center" style="width: 16rem;">
+        <a href="<?php echo base_url('leave/approve') ?>">
+            <img class="card-img-top" src="<?php echo base_url('assets/ready.png'); ?>" alt="Approve Leave" style="padding: 20px;">
+            <div class="card-body">
+                <h6 class="card-text font-weight-bold">APPROVE LEAVE</h6>
+                <h6>APPROVE OR REJECT LEAVE REQUESTS</h6>
             </div>
+        </a>
+    </div>
+<?php endif; ?>
+
+<!-- Employee Leave Balance Card -->
+<?php if ($isHR): ?>
+    <div class="card text-center" style="width: 16rem;">
+        <a href="<?php echo base_url('leave/approve') ?>">
+            <img class="card-img-top" src="<?php echo base_url('assets/employee.png'); ?>" alt="Employee Leave Balance" style="padding: 20px;">
+            <div class="card-body">
+                <h6 class="card-text font-weight-bold">Employee Leave Balance</h6>
+                <h6>MODIFY CURRENT EMPLOYEE LEAVE BALANCES</h6>
+            </div>
+        </a>
+    </div>
+<?php endif; ?>
+
 
         </div>
     </div>

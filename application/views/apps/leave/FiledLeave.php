@@ -182,12 +182,12 @@
         $employee_id = $this->session->userdata('employee_id');
 
         // Filter the leaveBalance array to only include records for the logged-in user
-        $userLeaveBalance = array_filter($leaveBalance, function($leave) use ($employee_id) {
+        $userLeaveRecords = array_filter($leaveRecords, function($leave) use ($employee_id) {
             return $leave['empID'] === $employee_id;
         });
 
         // Sort the filtered leaveBalance array
-        usort($userLeaveBalance, function($a, $b) {
+        usort($userLeaveRecords, function($a, $b) {
             if ($a['lvaStatus'] === 'PENDING' && $b['lvaStatus'] !== 'PENDING') {
                 return -1; // $a comes before $b
             }
@@ -220,8 +220,8 @@
             </tr>
         </thead>
         <tbody id="leaveTableBody">
-            <?php if (!empty($userLeaveBalance)) : ?>
-                <?php foreach ($userLeaveBalance as $leave) : ?>
+            <?php if (!empty($userLeaveRecords)) : ?>
+                <?php foreach ($userLeaveRecords as $leave) : ?>
                     <tr class="status-row" data-status="<?= $leave['lvaStatus']; ?>" data-date="<?= $leave['lvaDateFiled']; ?>" data-filedno="<?= $leave['lvaFiledNo']; ?>" data-filedtype="<?= $leave['lvaFiledType']; ?>">
                         <td><?= $leave['lvaFiledNo']; ?></td>
                         <td><?= $leave['empID']; ?></td>

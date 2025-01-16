@@ -31,20 +31,29 @@ class LeaveController extends CI_Controller
     }
 
     public function dashboard()
-{
-    // Load the view for the leave dashboard
-    $data['title'] = 'Leave Management';
-
-    $this->load->view('apps/templates/header', $data);
-    $this->load->view('apps/leave/dashboard', $data);  // This will load the dashboard.php view
-    $this->load->view('apps/templates/footer');
-}
-
+    {
+        // Load the view for the leave dashboard
+        $data['title'] = 'Leave Management';
+    
+        // Check if the user is an Approving Officer from the session
+        $data['isApprovingOfficer'] = $this->session->userdata('isApprovingOfficer');
+        
+        // Log the value of $isApprovingOfficer
+        log_message('debug', 'Is Approving Officer: ' . var_export($data['isApprovingOfficer'], true));
+        $employee_id = $this->session->userdata('employee_id');
+        $this->load->model('CheckUserRoleModel');
+        $data['isHR'] = $this->CheckUserRoleModel->check_hr($employee_id);
+    
+        $this->load->view('apps/templates/header', $data);
+        $this->load->view('apps/leave/dashboard', $data);  // This will load the dashboard.php view
+        $this->load->view('apps/templates/footer');
+    }
+    
 public function viewApprove()
 {
     // Load the view for the leave dashboard
     $data['title'] = 'Leave Management';
-    $data['leaveBalance'] = $this->LeaveModel->getAllLeaveApplications();
+    $data['leaveRecords'] = $this->LeaveModel->getAllLeaveApplications();
 
     $this->load->view('apps/templates/header', $data);
     $this->load->view('apps/leave/approveleave', $data);  // This will load the ApproveLeave.php view
@@ -150,7 +159,7 @@ public function viewApprove()
     
     public function viewLeave()
     {
-        $data['leaveBalance'] = $this->LeaveModel->getAllLeaveApplications(); 
+        $data['leaveRecords'] = $this->LeaveModel->getAllLeaveApplications(); 
         $data['title'] = 'Filed Leave';
         $this->load->view('apps/templates/header', $data);  
         $this->load->view('apps/leave/FiledLeave', $data);  
@@ -182,15 +191,34 @@ public function viewApprove()
     public function approveLeave($filedNo)
     {
         // Sanitize and validate the filedNo
-        $filedNo = htmlspecialchars(strip_tags($filedNo));  // Basic sanitization, improve if needed
+        $filedNo = htmlspecialchars(strip_tags($filedNo)); // Basic sanitization, improve if needed
     
         if (empty($filedNo)) {
             echo json_encode(['status' => 'error', 'message' => 'Invalid leave request.']);
             return;
         }
     
+        // Get the current logged-in user's employee_id
+        $employeeId = $this->session->userdata('employee_id');
+        $this->associates_db = $this->load->database('associates', TRUE);
+    
+        // Query the database for the user's first_name and last_name
+        $this->associates_db->select('first_name, last_name');
+        $this->associates_db->from('associates');
+        $this->associates_db->where('employee_id', $employeeId);
+        $query = $this->associates_db->get();
+        $user = $query->row();
+    
+        if (!$user) {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to retrieve approver details.']);
+            return;
+        }
+    
+        // Combine first_name and last_name to form the full name
+        $approvedBy = $user->first_name . ' ' . $user->last_name;
+    
         // Call the model's approve method
-        $result = $this->LeaveModel->approveLeave($filedNo);
+        $result = $this->LeaveModel->approveLeave($filedNo, $approvedBy);
     
         if ($result) {
             // Return success response as JSON
@@ -200,6 +228,7 @@ public function viewApprove()
             echo json_encode(['status' => 'error', 'message' => 'Failed to approve the leave request.']);
         }
     }
+    
 
     public function disapproveLeave($filedNo)
     {

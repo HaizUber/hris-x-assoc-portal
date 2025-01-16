@@ -48,16 +48,17 @@ class LeaveModel extends CI_Model
         return false;
     }
 
-    public function approveLeave($filedNo)
+    public function approveLeave($filedNo, $approvedBy)
     {
         // Check if the leave exists and is currently pending before attempting update
         $this->associates_db->where('lvaFiledNo', $filedNo);
-        $this->associates_db->where('lvaStatus', 'PENDING');  // Ensure that only pending leaves are approved
+        $this->associates_db->where('lvaStatus', 'PENDING'); // Ensure only pending leaves are approved
         $leaveExists = $this->associates_db->count_all_results('tblleavefile') > 0;
     
         if ($leaveExists) {
             // Proceed with update if leave exists and is pending
             $this->associates_db->set('lvaStatus', 'APPROVED');  // Set status to approved
+            $this->associates_db->set('lvaApprovedBy', $approvedBy); // Set the approved by information
             $this->associates_db->where('lvaFiledNo', $filedNo);
             if ($this->associates_db->update('tblleavefile')) {
                 return true;
@@ -72,6 +73,7 @@ class LeaveModel extends CI_Model
         log_message('error', 'Leave not found or is not pending for filed_no: ' . $filedNo);
         return false;
     }
+    
 
     public function disapproveLeave($filedNo, $comment)
     {
