@@ -62,6 +62,28 @@ public function viewApprove()
 
     public function submitLeave()
     {
+    // Get the employee ID from session
+        $employeeId = $this->session->userdata('employee_id');
+
+    // Get today's date in the desired format (e.g., Y-m-d)
+        $today = date('Ymd');  // This will give the date in the format '20250116'
+    
+    // Generate a unique ID for the file
+        $uniqueId = uniqid();  // Unique ID generated using PHP's uniqid function
+
+    // Construct the new file name
+        $fileName = 'medCert_' . $employeeId . '_' . $today . '_' . $uniqueId;
+    
+        // Configuring file upload
+            $config['upload_path'] = FCPATH . 'uploads/medcert/'; // FCPATH is CodeIgniter's root path constant
+            $config['allowed_types'] = 'jpg|jpeg|png|pdf'; // Allowed file types
+            $config['max_size'] = 2048; // Maximum file size (2MB)
+            $config['file_name'] = $fileName; // Unique file name
+
+        // Load the upload library and initialize with the config
+            $this->load->library('upload');
+            $this->upload->initialize($config);
+
         // Capture form data
         $formData = [
             'empID'        => $this->input->post('empID'),
@@ -106,21 +128,33 @@ public function viewApprove()
             }
         }
 
-            // Validation for Leave Types - Sick Leave (SL)
+    // Validation for Leave Types - Sick Leave (SL)
     if ($formData['lvaType'] == 'SL') {
         $dateFrom = strtotime($formData['lvaDateFrom']);
         $dateTo = strtotime($formData['lvaDateTo']);
         $duration = ($dateTo - $dateFrom) / (60 * 60 * 24) + 1; // Convert to days (inclusive of the start date)
 
-        if ($duration > 2) {
-            // Check if a medical certificate is uploaded
-            if (empty($_FILES['medCert']['name'])) {
-                $this->session->set_flashdata('error', 'Medical Certificate is required for Sick Leave greater than 2 days');
+    // Check if the leave duration is greater than 2 days
+    if ($duration > 2) {
+        // Check if a medical certificate is uploaded
+        if (empty($_FILES['medCert']['name'])) {
+            $this->session->set_flashdata('error', 'Medical Certificate is required for Sick Leave greater than 2 days');
+            redirect('leave/home');
+        } else {
+            // Handle file upload if medical certificate is provided
+            if (!$this->upload->do_upload('medCert')) {
+                // If upload fails, set error message
+                $this->session->set_flashdata('error', $this->upload->display_errors());
                 redirect('leave/home');
+            } else {
+                // Get the uploaded file data
+                $uploadData = $this->upload->data();
+                // Store the file path in the form data
+                $medCertPath = './uploads/medcert/' . $uploadData['file_name'];
             }
         }
     }
-    
+}  
     // Validation for fractional leave time (start time should not be after end time)
     if ($this->input->post('lvaFractional')) {
         $startTimeHour = $this->input->post('startTimeHour');

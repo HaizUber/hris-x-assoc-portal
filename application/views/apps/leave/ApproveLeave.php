@@ -210,7 +210,7 @@
         $approvingEmployeeIDs = array_column($query->result_array(), 'empApprovingOfficer');
     }
 
-    // Filter the leaveBalance array based on the approvingEmployeeIDs
+    // Filter the leaveRecords array based on the approvingEmployeeIDs
     $userLeaveRecords = array_filter($leaveRecords, function($leave) use ($approvingEmployeeIDs) {
         return in_array($leave['empID'], $approvingEmployeeIDs);
     });
