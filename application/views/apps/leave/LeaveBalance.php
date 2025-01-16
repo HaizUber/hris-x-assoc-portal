@@ -49,13 +49,12 @@
                     <th>Sick Leave Balance</th>
                     <th>Total Leave Remaining</th>
                     <th>Total Leave Used</th>
-                    <th>Total Unpaid Sick Leave</th>  <!-- New column -->
+                    <th>Total Unpaid Sick Leave</th> 
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td><?= $leaveBalances['empID']; ?></td>
-                    <!-- Displaying integer values -->
                     <td><?= $leaveBalances['sickLeaveBalance']; ?> days</td>
                     <td><?= $leaveBalances['totalRemainingSickLeave']; ?> days</td>
                     <td><?= $leaveBalances['totalSickLeaveUsed']; ?> days</td>
@@ -83,13 +82,12 @@
                     <th>Vacation Leave Balance</th>
                     <th>Total Leave Remaining</th>
                     <th>Total Leave Used</th>
-                    <th>Total Unpaid Vacation Leave</th>  <!-- New column -->
+                    <th>Total Unpaid Vacation Leave</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td><?= $leaveBalances['empID']; ?></td>
-                    <!-- Displaying integer values -->
                     <td><?= $leaveBalances['vacationLeaveBalance']; ?> days</td>
                     <td><?= $leaveBalances['totalRemainingVacationLeave']; ?> days</td>
                     <td><?= $leaveBalances['totalVacationLeaveUsed']; ?> days</td>

@@ -216,7 +216,7 @@
         return in_array($leave['empID'], $approvingEmployeeIDs);
     });
 
-    // Sort the filtered leaveBalance array
+    // Sort the filtered leaveRecords array
     usort($userLeaveRecords, function($a, $b) {
         if ($a['lvaStatus'] === 'PENDING' && $b['lvaStatus'] !== 'PENDING') {
             return -1; // $a comes before $b
@@ -248,7 +248,7 @@
                 <th>Start Time</th>
                 <th>End Time</th>
                 <th>Medical Certificate</th>
-                <th>Actions</th> <!-- New Actions Column -->
+                <th>Actions</th> 
             </tr>
         </thead>
         <tbody id="leaveTableBody">
@@ -394,10 +394,10 @@ function approveLeave(fileNo) {
 
                     // Remove the approve and disapprove buttons
                     if (approveButton) {
-                        approveButton.style.display = 'none'; // Hide the approve button
+                        approveButton.style.display = 'none';
                     }
                     if (disapproveButton) {
-                        disapproveButton.style.display = 'none'; // Hide the disapprove button
+                        disapproveButton.style.display = 'none'; 
                     }
                 }
             } else {
@@ -443,10 +443,10 @@ function approveLeave(fileNo) {
 
                     // Hide the disapprove and approve buttons
                     if (disapproveButton) {
-                        disapproveButton.style.display = 'none'; // Hide the disapprove button
+                        disapproveButton.style.display = 'none'; 
                     }
                     if (approveButton) {
-                        approveButton.style.display = 'none'; // Hide the approve button
+                        approveButton.style.display = 'none'; 
                     }
                 }
             } else {

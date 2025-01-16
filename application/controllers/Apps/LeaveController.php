@@ -31,7 +31,7 @@ class LeaveController extends CI_Controller
 
     public function dashboard()
     {
-        // Load the view for the leave dashboard
+        // Load the title for the leave dashboard
         $data['title'] = 'Leave Management';
     
         // Check if the user is an Approving Officer from the session
@@ -51,7 +51,7 @@ class LeaveController extends CI_Controller
     
 public function viewApprove()
 {
-    // Load the view for the leave dashboard
+    // Load the view for the leave approval page
     $data['title'] = 'Leave Management';
     $data['leaveRecords'] = $this->LeaveModel->getAllLeaveApplications();
 
@@ -62,7 +62,7 @@ public function viewApprove()
 
 public function viewBalance()
 {
-    // Load the view for the leave dashboard
+    // Load the view for the leave balance page
     $data['title'] = 'Leave Balance';
 
     // Get the employee ID from session
@@ -163,7 +163,7 @@ public function submitLeave()
     if ($formData['lvaType'] == 'SL') {
         $dateFrom = strtotime($formData['lvaDateFrom']);
         $dateTo = strtotime($formData['lvaDateTo']);
-        $duration = ($dateTo - $dateFrom) / (60 * 60 * 24) + 1; // Convert to days (inclusive of the start date)
+        $duration = ($dateTo - $dateFrom) / (60 * 60 * 24) + 1; // Convert to days
 
         // Check if the leave duration is greater than 2 days
         if ($duration > 2) {
@@ -245,14 +245,14 @@ public function submitLeave()
         $data['leaveRecords'] = $this->LeaveModel->getAllLeaveApplications(); 
         $data['title'] = 'Filed Leave';
         $this->load->view('apps/templates/header', $data);  
-        $this->load->view('apps/leave/FiledLeave', $data);  
+        $this->load->view('apps/leave/FiledLeave', $data);  // This will load the filedleave view
         $this->load->view('apps/templates/footer');  
     }
     
     public function cancelLeave($filedNo)
     {
         // Sanitize and validate the filedNo
-        $filedNo = htmlspecialchars(strip_tags($filedNo));  // Basic sanitization, improve if needed
+        $filedNo = htmlspecialchars(strip_tags($filedNo)); 
     
         if (empty($filedNo)) {
             echo json_encode(['status' => 'error', 'message' => 'Invalid leave request.']);
@@ -273,7 +273,7 @@ public function submitLeave()
     
     public function approveLeave($filedNo)
     {
-        // Sanitize and validate the filedNo
+        
         $filedNo = htmlspecialchars(strip_tags($filedNo)); // Basic sanitization, improve if needed
     
         if (empty($filedNo)) {

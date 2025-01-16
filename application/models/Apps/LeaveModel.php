@@ -22,13 +22,12 @@ class LeaveModel extends CI_Model
 
     public function fileLeave($data)
     {
-        // Insert leave data into the correct table using the associates database
         return $this->associates_db->insert('tblleavefile', $data); 
     }
 
     public function deleteLeave($filedNo)
     {
-        // Check if the leave exists before attempting deletion (optimized query)
+        // Check if the leave exists before attempting deletion
         $this->associates_db->where('lvaFiledNo', $filedNo);
         if ($this->associates_db->count_all_results('tblleavefile') > 0) {
             // Proceed with deletion if leave exists
@@ -102,7 +101,7 @@ class LeaveModel extends CI_Model
 
     public function getPendingLeavesCount($employee_id)
     {
-        // Step 1: Query tblApprovingOfficer to get the corresponding empID
+        //Query tblApprovingOfficer to get the corresponding empID
         $this->associates_db->select('empID');
         $this->associates_db->from('tblApprovingOfficer');
         $this->associates_db->where('empApprovingOfficer', $employee_id); // Match the current employee_id
@@ -111,10 +110,10 @@ class LeaveModel extends CI_Model
         if ($query->num_rows() > 0) {
             $approverEmpIDs = array_column($query->result_array(), 'empID'); // Get all empID values
 
-            // Step 2: Query tblleavefile for pending leaves with matching empID
+            //Query tblleavefile for pending leaves with matching empID
             $this->associates_db->where_in('empID', $approverEmpIDs); // Filter by empID from tblApprovingOfficer
             $this->associates_db->where('lvaStatus', 'PENDING'); // Filter only pending leaves
-            $this->associates_db->from('tblleavefile'); // Replace with your leave request table name
+            $this->associates_db->from('tblleavefile'); 
 
             return $this->associates_db->count_all_results();
         } else {
@@ -131,7 +130,6 @@ class LeaveModel extends CI_Model
         $this->associates_db->where('empID', $employee_id);  // Ensure to filter by employee ID
         $query = $this->associates_db->get();
 
-        // Return the result as an associative array if found, otherwise null
         return $query->num_rows() > 0 ? $query->row_array() : null;
     }
 
