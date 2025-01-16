@@ -210,12 +210,14 @@
                 <th>Type</th>
                 <th>Reason</th>
                 <th>Status</th>
+                <th>Total Hours</th>
                 <th>School Year</th>
                 <th>Approved By</th>
                 <th>Comments</th>
                 <th>Filed Type</th>
                 <th>Start Time</th>
                 <th>End Time</th>
+                <th>Medical Certificate</th>
                 <th>Actions</th> <!-- New Actions Column -->
             </tr>
         </thead>
@@ -249,12 +251,14 @@
                             ?>
                             <span class="status <?= $statusClass; ?>"><?= $leave['lvaStatus']; ?></span>
                         </td>
+                        <td><?= $leave['lvaDays'] ?? 'NULL'; ?></td>
                         <td><?= $leave['lvaSchoolYear'] ?? 'NULL'; ?></td>
                         <td><?= $leave['lvaApprovedBy'] ?? 'NULL'; ?></td>
                         <td><?= $leave['lvaComments'] ?? 'NULL'; ?></td>
                         <td><?= $leave['lvaFiledType']; ?></td>
                         <td><?= $leave['lvaStartTime']; ?></td>
                         <td><?= $leave['lvaEndTime']; ?></td>
+                        <td><?= $leave['lvaMedCert']; ?></td>
                         <td>
                             <?php if ($leave['lvaStatus'] === 'PENDING') : ?>
                                 <button class="cancel-btn" onclick="cancelLeave('<?= $leave['lvaFiledNo']; ?>')">Cancel</button>

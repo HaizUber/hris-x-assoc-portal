@@ -118,6 +118,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-bottom: 10px;
         }
         .approve-btn:hover {
             background-color: #388E3C;
@@ -246,6 +247,7 @@
                 <th>Filed Type</th>
                 <th>Start Time</th>
                 <th>End Time</th>
+                <th>Medical Certificate</th>
                 <th>Actions</th> <!-- New Actions Column -->
             </tr>
         </thead>
@@ -285,6 +287,7 @@
                         <td><?= $leave['lvaFiledType']; ?></td>
                         <td><?= $leave['lvaStartTime']; ?></td>
                         <td><?= $leave['lvaEndTime']; ?></td>
+                        <td><?= $leave['lvaMedCert']; ?></td>
                         
                         <td>
                         <?php if ($leave['lvaStatus'] === 'PENDING') : ?>
