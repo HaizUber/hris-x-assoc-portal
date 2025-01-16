@@ -210,13 +210,13 @@
         $approvingEmployeeIDs = array_column($query->result_array(), 'empApprovingOfficer');
     }
 
-    // Filter the leaveBalance array based on the approvingEmployeeIDs
-    $userLeaveBalance = array_filter($leaveBalance, function($leave) use ($approvingEmployeeIDs) {
+    // Filter the leaveRecords array based on the approvingEmployeeIDs
+    $userLeaveRecords = array_filter($leaveRecords, function($leave) use ($approvingEmployeeIDs) {
         return in_array($leave['empID'], $approvingEmployeeIDs);
     });
 
     // Sort the filtered leaveBalance array
-    usort($userLeaveBalance, function($a, $b) {
+    usort($userLeaveRecords, function($a, $b) {
         if ($a['lvaStatus'] === 'PENDING' && $b['lvaStatus'] !== 'PENDING') {
             return -1; // $a comes before $b
         }
@@ -250,8 +250,8 @@
             </tr>
         </thead>
         <tbody id="leaveTableBody">
-            <?php if (!empty($userLeaveBalance)) : ?>
-                <?php foreach ($userLeaveBalance as $leave) : ?>
+            <?php if (!empty($userLeaveRecords)) : ?>
+                <?php foreach ($userLeaveRecords as $leave) : ?>
                     <tr class="status-row" data-status="<?= $leave['lvaStatus']; ?>" data-date="<?= $leave['lvaDateFiled']; ?>" data-filedno="<?= $leave['lvaFiledNo']; ?>" data-filedtype="<?= $leave['lvaFiledType']; ?>">
                         <td><?= $leave['lvaFiledNo']; ?></td>
                         <td><?= $leave['empID']; ?></td>
@@ -311,42 +311,54 @@
     const startDateInput = document.getElementById('startDate');
     const endDateInput = document.getElementById('endDate');
     const tableBody = document.getElementById('leaveTableBody');
+    const fractionalDropdown = document.getElementById('fractionalDropdown');
     const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
-    // Function to filter the table based on selected status and date range
-    function filterTable() {
-        const status = statusDropdown.value.toUpperCase();
-        const startDate = startDateInput.value;
-        const endDate = endDateInput.value;
+    // Function to filter the table based on selected status, date range, and fractional type
+function filterTable() {
+    const status = statusDropdown.value.toUpperCase();
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+    const fractionalType = fractionalDropdown.value;
 
-        const rows = tableBody.getElementsByClassName('status-row');
-        Array.from(rows).forEach(row => {
-            const rowStatus = row.dataset.status.toUpperCase();
-            const rowDate = row.dataset.date;
-            let showRow = true;
+    const rows = tableBody.getElementsByClassName('status-row');
+    Array.from(rows).forEach(row => {
+        const rowStatus = row.dataset.status.toUpperCase();
+        const rowDate = row.dataset.date;
+        const rowFiledType = row.dataset.filedtype; // Get the fractional type attribute
+        let showRow = true;
 
-            if (status !== 'ALL' && rowStatus !== status) {
+        // Filter by status
+        if (status !== 'ALL' && rowStatus !== status) {
+            showRow = false;
+        }
+
+        // Filter by date range if both dates are provided
+        if (startDate && endDate) {
+            const rowDateFrom = new Date(rowDate);
+            const startDateRange = new Date(startDate);
+            const endDateRange = new Date(endDate);
+
+            if (rowDateFrom < startDateRange || rowDateFrom > endDateRange) {
                 showRow = false;
             }
+        }
 
-            // Filter by date range if both dates are provided
-            if (startDate && endDate) {
-                const rowDateFrom = new Date(rowDate);
-                const startDateRange = new Date(startDate);
-                const endDateRange = new Date(endDate);
-
-                if (rowDateFrom < startDateRange || rowDateFrom > endDateRange) {
-                    showRow = false;
-                }
+        // Filter by fractional type
+        if (fractionalType !== 'all') {
+            if (
+                (fractionalType === 'NF' && rowFiledType !== 'NF') || 
+                (fractionalType === 'nonNF' && rowFiledType === 'NF')
+            ) {
+                showRow = false;
             }
+        }
 
-            if (showRow) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    }
+        // Set row visibility based on filters
+        row.style.display = showRow ? '' : 'none';
+    });
+}
+
 
     // Function to clear the filters
     clearFiltersBtn.addEventListener('click', () => {
@@ -447,6 +459,7 @@ function approveLeave(fileNo) {
     statusDropdown.addEventListener('change', filterTable);
     startDateInput.addEventListener('change', filterTable);
     endDateInput.addEventListener('change', filterTable);
+    fractionalDropdown.addEventListener('change', filterTable);
 </script>
 
 </body>

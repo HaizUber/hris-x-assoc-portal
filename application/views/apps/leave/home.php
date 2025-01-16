@@ -123,7 +123,7 @@
         <?php endif; ?>
 
 
-        <form action="<?= site_url('leave/submit'); ?>" method="post">
+        <form action="<?= site_url('leave/submit'); ?>" method="post" enctype="multipart/form-data">
             <h1>File Leave</h1>
         
             <!-- Redirect Link to Leave Balance -->
@@ -167,7 +167,7 @@
                 <tr>
                     <td>Total # of Hours:</td>
                     <td>
-                        <input type="number" name="lva" id="lva">
+                        <input type="number" name="lva" id="lva" readonly>
                     </td>
                 </tr>
                 <div id="medCertField" style="display: none;">
@@ -238,6 +238,71 @@ document.addEventListener('DOMContentLoaded', function () {
     const fractionalLeaveEndTimeRow = document.getElementById('fractionalLeaveEndTimeRow');
     const medCertField = document.getElementById('medCertField');
     const clearFormButton = document.querySelector('button[type="reset"]');
+    const totalHoursInput = document.getElementById('lva');
+    const dateFrom = document.getElementById('lvaDateFrom');
+    const dateTo = document.getElementById('lvaDateTo');
+    const startTimeHour = document.getElementById('startTimeHour');
+    const startTimeMinute = document.getElementById('startTimeMinute');
+    const endTimeHour = document.getElementById('endTimeHour');
+    const endTimeMinute = document.getElementById('endTimeMinute');
+
+    // Function to calculate the total number of hours
+    function calculateTotalHours() {
+    const dateFrom = document.getElementById('lvaDateFrom');
+    const dateTo = document.getElementById('lvaDateTo');
+    const startTimeHour = document.getElementById('startTimeHour');
+    const startTimeMinute = document.getElementById('startTimeMinute');
+    const endTimeHour = document.getElementById('endTimeHour');
+    const endTimeMinute = document.getElementById('endTimeMinute');
+    const fractionalLeave = fractionalLeaveCheckbox.checked;
+
+    const start = new Date(dateFrom.value);
+    const end = new Date(dateTo.value);
+
+    let totalHours = 0;
+
+    if (fractionalLeave) {
+        const startTime = new Date(start);
+        startTime.setHours(parseInt(startTimeHour.value), parseInt(startTimeMinute.value), 0, 0);
+
+        const endTime = new Date(end);
+        endTime.setHours(parseInt(endTimeHour.value), parseInt(endTimeMinute.value), 0, 0);
+
+        // Loop through each day in the date range
+        let currentDay = new Date(start);
+        while (currentDay <= end) {
+            // For each day, add the fractional hours
+            let dayStartTime = currentDay.toISOString().split('T')[0] + " " + startTime.getHours() + ":" + startTime.getMinutes();
+            let dayEndTime = currentDay.toISOString().split('T')[0] + " " + endTime.getHours() + ":" + endTime.getMinutes();
+
+            let dayStart = new Date(dayStartTime);
+            let dayEnd = new Date(dayEndTime);
+            
+            // Calculate the difference in hours for each day
+            const diff = (dayEnd - dayStart) / (1000 * 60 * 60); // Convert to hours
+            totalHours += diff;
+            
+            // Move to the next day
+            currentDay.setDate(currentDay.getDate() + 1);
+        }
+    } else {
+        // Calculate the total hours for full days
+        const days = (end - start) / (1000 * 60 * 60 * 24) + 1; // Calculate full days
+        totalHours = days * 8; // Assuming 8 hours per day for full leaves
+    }
+
+    totalHoursInput.value = totalHours.toFixed(2); // Display the total hours
+}
+
+
+    // Event listeners
+    dateFrom.addEventListener('change', calculateTotalHours);
+    dateTo.addEventListener('change', calculateTotalHours);
+    fractionalLeaveCheckbox.addEventListener('change', calculateTotalHours);
+    startTimeHour.addEventListener('change', calculateTotalHours);
+    startTimeMinute.addEventListener('change', calculateTotalHours);
+    endTimeHour.addEventListener('change', calculateTotalHours);
+    endTimeMinute.addEventListener('change', calculateTotalHours);
 
     // Check the initial state of the checkbox and toggle fields accordingly
     if (fractionalLeaveCheckbox.checked) {
@@ -286,6 +351,4 @@ document.addEventListener('DOMContentLoaded', function () {
         fractionalLeaveEndTimeRow.style.display = 'none';
     });
 });
-
 </script>
-

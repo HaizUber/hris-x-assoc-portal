@@ -31,20 +31,29 @@ class LeaveController extends CI_Controller
     }
 
     public function dashboard()
-{
-    // Load the view for the leave dashboard
-    $data['title'] = 'Leave Management';
-
-    $this->load->view('apps/templates/header', $data);
-    $this->load->view('apps/leave/dashboard', $data);  // This will load the dashboard.php view
-    $this->load->view('apps/templates/footer');
-}
-
+    {
+        // Load the view for the leave dashboard
+        $data['title'] = 'Leave Management';
+    
+        // Check if the user is an Approving Officer from the session
+        $data['isApprovingOfficer'] = $this->session->userdata('isApprovingOfficer');
+        
+        // Log the value of $isApprovingOfficer
+        log_message('debug', 'Is Approving Officer: ' . var_export($data['isApprovingOfficer'], true));
+        $employee_id = $this->session->userdata('employee_id');
+        $this->load->model('CheckUserRoleModel');
+        $data['isHR'] = $this->CheckUserRoleModel->check_hr($employee_id);
+    
+        $this->load->view('apps/templates/header', $data);
+        $this->load->view('apps/leave/dashboard', $data);  // This will load the dashboard.php view
+        $this->load->view('apps/templates/footer');
+    }
+    
 public function viewApprove()
 {
     // Load the view for the leave dashboard
     $data['title'] = 'Leave Management';
-    $data['leaveBalance'] = $this->LeaveModel->getAllLeaveApplications();
+    $data['leaveRecords'] = $this->LeaveModel->getAllLeaveApplications();
 
     $this->load->view('apps/templates/header', $data);
     $this->load->view('apps/leave/approveleave', $data);  // This will load the ApproveLeave.php view
@@ -53,6 +62,28 @@ public function viewApprove()
 
     public function submitLeave()
     {
+    // Get the employee ID from session
+        $employeeId = $this->session->userdata('employee_id');
+
+    // Get today's date in the desired format (e.g., Y-m-d)
+        $today = date('Ymd');  // This will give the date in the format '20250116'
+    
+    // Generate a unique ID for the file
+        $uniqueId = uniqid();  // Unique ID generated using PHP's uniqid function
+
+    // Construct the new file name
+        $fileName = 'medCert_' . $employeeId . '_' . $today . '_' . $uniqueId;
+    
+        // Configuring file upload
+            $config['upload_path'] = FCPATH . 'uploads/medcert/'; // FCPATH is CodeIgniter's root path constant
+            $config['allowed_types'] = 'jpg|jpeg|png|pdf'; // Allowed file types
+            $config['max_size'] = 2048; // Maximum file size (2MB)
+            $config['file_name'] = $fileName; // Unique file name
+
+        // Load the upload library and initialize with the config
+            $this->load->library('upload');
+            $this->upload->initialize($config);
+
         // Capture form data
         $formData = [
             'empID'        => $this->input->post('empID'),
@@ -97,21 +128,33 @@ public function viewApprove()
             }
         }
 
-            // Validation for Leave Types - Sick Leave (SL)
+    // Validation for Leave Types - Sick Leave (SL)
     if ($formData['lvaType'] == 'SL') {
         $dateFrom = strtotime($formData['lvaDateFrom']);
         $dateTo = strtotime($formData['lvaDateTo']);
         $duration = ($dateTo - $dateFrom) / (60 * 60 * 24) + 1; // Convert to days (inclusive of the start date)
 
-        if ($duration > 2) {
-            // Check if a medical certificate is uploaded
-            if (empty($_FILES['medCert']['name'])) {
-                $this->session->set_flashdata('error', 'Medical Certificate is required for Sick Leave greater than 2 days');
+    // Check if the leave duration is greater than 2 days
+    if ($duration > 2) {
+        // Check if a medical certificate is uploaded
+        if (empty($_FILES['medCert']['name'])) {
+            $this->session->set_flashdata('error', 'Medical Certificate is required for Sick Leave greater than 2 days');
+            redirect('leave/home');
+        } else {
+            // Handle file upload if medical certificate is provided
+            if (!$this->upload->do_upload('medCert')) {
+                // If upload fails, set error message
+                $this->session->set_flashdata('error', $this->upload->display_errors());
                 redirect('leave/home');
+            } else {
+                // Get the uploaded file data
+                $uploadData = $this->upload->data();
+                // Store the file path in the form data
+                $medCertPath = './uploads/medcert/' . $uploadData['file_name'];
             }
         }
     }
-    
+}  
     // Validation for fractional leave time (start time should not be after end time)
     if ($this->input->post('lvaFractional')) {
         $startTimeHour = $this->input->post('startTimeHour');
@@ -150,7 +193,7 @@ public function viewApprove()
     
     public function viewLeave()
     {
-        $data['leaveBalance'] = $this->LeaveModel->getAllLeaveApplications(); 
+        $data['leaveRecords'] = $this->LeaveModel->getAllLeaveApplications(); 
         $data['title'] = 'Filed Leave';
         $this->load->view('apps/templates/header', $data);  
         $this->load->view('apps/leave/FiledLeave', $data);  
@@ -182,15 +225,34 @@ public function viewApprove()
     public function approveLeave($filedNo)
     {
         // Sanitize and validate the filedNo
-        $filedNo = htmlspecialchars(strip_tags($filedNo));  // Basic sanitization, improve if needed
+        $filedNo = htmlspecialchars(strip_tags($filedNo)); // Basic sanitization, improve if needed
     
         if (empty($filedNo)) {
             echo json_encode(['status' => 'error', 'message' => 'Invalid leave request.']);
             return;
         }
     
+        // Get the current logged-in user's employee_id
+        $employeeId = $this->session->userdata('employee_id');
+        $this->associates_db = $this->load->database('associates', TRUE);
+    
+        // Query the database for the user's first_name and last_name
+        $this->associates_db->select('first_name, last_name');
+        $this->associates_db->from('associates');
+        $this->associates_db->where('employee_id', $employeeId);
+        $query = $this->associates_db->get();
+        $user = $query->row();
+    
+        if (!$user) {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to retrieve approver details.']);
+            return;
+        }
+    
+        // Combine first_name and last_name to form the full name
+        $approvedBy = $user->first_name . ' ' . $user->last_name;
+    
         // Call the model's approve method
-        $result = $this->LeaveModel->approveLeave($filedNo);
+        $result = $this->LeaveModel->approveLeave($filedNo, $approvedBy);
     
         if ($result) {
             // Return success response as JSON
@@ -200,6 +262,7 @@ public function viewApprove()
             echo json_encode(['status' => 'error', 'message' => 'Failed to approve the leave request.']);
         }
     }
+    
 
     public function disapproveLeave($filedNo)
     {
