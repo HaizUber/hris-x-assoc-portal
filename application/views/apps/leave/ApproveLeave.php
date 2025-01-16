@@ -118,6 +118,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-bottom: 10px;
         }
         .approve-btn:hover {
             background-color: #388E3C;
@@ -215,7 +216,7 @@
         return in_array($leave['empID'], $approvingEmployeeIDs);
     });
 
-    // Sort the filtered leaveBalance array
+    // Sort the filtered leaveRecords array
     usort($userLeaveRecords, function($a, $b) {
         if ($a['lvaStatus'] === 'PENDING' && $b['lvaStatus'] !== 'PENDING') {
             return -1; // $a comes before $b
@@ -246,7 +247,8 @@
                 <th>Filed Type</th>
                 <th>Start Time</th>
                 <th>End Time</th>
-                <th>Actions</th> <!-- New Actions Column -->
+                <th>Medical Certificate</th>
+                <th>Actions</th> 
             </tr>
         </thead>
         <tbody id="leaveTableBody">
@@ -285,6 +287,7 @@
                         <td><?= $leave['lvaFiledType']; ?></td>
                         <td><?= $leave['lvaStartTime']; ?></td>
                         <td><?= $leave['lvaEndTime']; ?></td>
+                        <td><?= $leave['lvaMedCert']; ?></td>
                         
                         <td>
                         <?php if ($leave['lvaStatus'] === 'PENDING') : ?>
@@ -391,10 +394,10 @@ function approveLeave(fileNo) {
 
                     // Remove the approve and disapprove buttons
                     if (approveButton) {
-                        approveButton.style.display = 'none'; // Hide the approve button
+                        approveButton.style.display = 'none';
                     }
                     if (disapproveButton) {
-                        disapproveButton.style.display = 'none'; // Hide the disapprove button
+                        disapproveButton.style.display = 'none'; 
                     }
                 }
             } else {
@@ -440,10 +443,10 @@ function approveLeave(fileNo) {
 
                     // Hide the disapprove and approve buttons
                     if (disapproveButton) {
-                        disapproveButton.style.display = 'none'; // Hide the disapprove button
+                        disapproveButton.style.display = 'none'; 
                     }
                     if (approveButton) {
-                        approveButton.style.display = 'none'; // Hide the approve button
+                        approveButton.style.display = 'none'; 
                     }
                 }
             } else {

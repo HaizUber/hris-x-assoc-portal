@@ -38,7 +38,7 @@
 
             <!-- View Leave Balance Card -->
             <div class="card text-center" style="width: 16rem;">
-                <a href="<?php echo base_url('leave/viewBalance') ?>">
+                <a href="<?php echo base_url('leave/balance') ?>">
                     <img class="card-img-top" src="<?php echo base_url('assets/magnifying-glass.png'); ?>" alt="View Leave Balance" style="padding: 20px;">
                     <div class="card-body">
                         <h6 class="card-text font-weight-bold">VIEW LEAVE BALANCE</h6>
@@ -59,10 +59,16 @@
             <div class="card-body">
                 <h6 class="card-text font-weight-bold">APPROVE LEAVE</h6>
                 <h6>APPROVE OR REJECT LEAVE REQUESTS</h6>
+                <?php if ($pendingLeaveCount > 0): ?>
+                    <span class="badge badge-danger"><?php echo $pendingLeaveCount; ?> Pending</span>
+                <?php else: ?>
+                    <span class="badge badge-success">No Pending Requests</span>
+                <?php endif; ?>
             </div>
         </a>
     </div>
 <?php endif; ?>
+
 
 <!-- Employee Leave Balance Card -->
 <?php if ($isHR): ?>

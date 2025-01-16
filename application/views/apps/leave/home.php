@@ -126,7 +126,6 @@
         <form action="<?= site_url('leave/submit'); ?>" method="post" enctype="multipart/form-data">
             <h1>File Leave</h1>
         
-            <!-- Redirect Link to Leave Balance -->
         <p style="text-align: right; margin-top: 20px;">
             <a href="<?= site_url('leave/filedleave'); ?>" style="color: #007bff; text-decoration: underline;">View Filed Leave</a>
         </p>
@@ -167,7 +166,7 @@
                 <tr>
                     <td>Total # of Hours:</td>
                     <td>
-                        <input type="number" name="lva" id="lva" readonly>
+                        <input type="number" name="lvaDays" id="lvaDays" readonly>
                     </td>
                 </tr>
                 <div id="medCertField" style="display: none;">
@@ -238,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const fractionalLeaveEndTimeRow = document.getElementById('fractionalLeaveEndTimeRow');
     const medCertField = document.getElementById('medCertField');
     const clearFormButton = document.querySelector('button[type="reset"]');
-    const totalHoursInput = document.getElementById('lva');
+    const totalHoursInput = document.getElementById('lvaDays');
     const dateFrom = document.getElementById('lvaDateFrom');
     const dateTo = document.getElementById('lvaDateTo');
     const startTimeHour = document.getElementById('startTimeHour');
