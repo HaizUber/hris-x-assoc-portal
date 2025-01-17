@@ -130,7 +130,7 @@
             <a href="<?= site_url('leave/filedleave'); ?>" style="color: #007bff; text-decoration: underline;">View Filed Leave</a>
         </p>
             <table>
-            <tr>
+            <tr hidden>
                 <td>Employee ID:</td>
                 <td>
                     <input type="text" name="empID" id="empID" value="<?php echo $this->session->userdata('employee_id'); ?>" readonly />

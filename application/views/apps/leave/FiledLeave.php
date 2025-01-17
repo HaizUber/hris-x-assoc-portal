@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Filed Leave</title>
+        <!-- DataTables CSS -->
+        <link rel="stylesheet" type="text/css" href="https:////cdn.datatables.net/2.2.1/css/dataTables.dataTables.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -71,6 +73,16 @@
         .disapproved {
             background-color: #f44336; /* Red for disapproved */
         }
+        /* Container for the table */
+    .table-container {
+        width: 90%;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow-x: auto; /* Allows horizontal scrolling if the table overflows */
+    }
 
         table {
             margin: 20px auto;
@@ -168,7 +180,7 @@
             <select class="dropdown" id="fractionalDropdown">
                 <option value="all">Both</option>
                 <option value="NF">Fractional</option>
-                <option value="nonNF">Non-Fractional</option>
+                <option value="F">Non-Fractional</option>
             </select>
         </div>
     <div>
@@ -199,6 +211,7 @@
         });
     ?>
 
+<div class="table-container">
     <table id="leaveTable">
         <thead>
             <tr>
@@ -258,7 +271,15 @@
                         <td><?= $leave['lvaFiledType']; ?></td>
                         <td><?= $leave['lvaStartTime']; ?></td>
                         <td><?= $leave['lvaEndTime']; ?></td>
-                        <td><?= $leave['lvaMedCert']; ?></td>
+                        <td>
+                        <?php if (!empty($leave['lvaMedCert'])) : ?>
+                            <a href="/das/uploads/medcert/<?= $leave['lvaMedCert']; ?>" target="_blank" class="med-cert-link">
+                                View Certificate
+                            </a>
+                        <?php else : ?>
+                            N/A
+                        <?php endif; ?>
+                        </td>
                         <td>
                             <?php if ($leave['lvaStatus'] === 'PENDING') : ?>
                                 <button class="cancel-btn" onclick="cancelLeave('<?= $leave['lvaFiledNo']; ?>')">Cancel</button>
@@ -275,70 +296,9 @@
             <?php endif; ?>
         </tbody>
     </table>
+    </div>
 
     <script>
-        const statusDropdown = document.getElementById('statusDropdown');
-        const startDateInput = document.getElementById('startDate');
-        const endDateInput = document.getElementById('endDate');
-        const tableBody = document.getElementById('leaveTableBody');
-        const fractionalDropdown = document.getElementById('fractionalDropdown');
-        const clearFiltersBtn = document.getElementById('clearFiltersBtn');
-
-        statusDropdown.addEventListener('change', filterTable);
-        startDateInput.addEventListener('input', filterTable);
-        endDateInput.addEventListener('input', filterTable);
-        fractionalDropdown.addEventListener('change', filterTable);
-        clearFiltersBtn.addEventListener('click', clearFilters);
-
-        function filterTable() {
-            const selectedStatus = statusDropdown.value;
-            const startDate = startDateInput.value;
-            const endDate = endDateInput.value;
-            const fractionalType = fractionalDropdown.value;
-
-            const rows = tableBody.querySelectorAll('tr');
-
-            rows.forEach(row => {
-                const rowStatus = row.getAttribute('data-status');
-                const rowDate = row.getAttribute('data-date');
-                const rowFiledType = row.getAttribute('data-filedtype');
-
-                const statusMatches = selectedStatus === 'all' || rowStatus === selectedStatus;
-                const dateMatches = isDateInRange(rowDate, startDate, endDate);
-                const fractionalMatches = fractionalType === 'all' || 
-                    (fractionalType === 'NF' && rowFiledType === 'NF') || 
-                    (fractionalType === 'nonNF' && rowFiledType !== 'NF');
-
-                if (statusMatches && dateMatches && fractionalMatches) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
-
-        function isDateInRange(dateStr, startDate, endDate) {
-            const date = new Date(dateStr);
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-
-            return (!startDate || date >= start) && (!endDate || date <= end);
-        }
-
-        function clearFilters() {
-            // Reset filter inputs
-            statusDropdown.value = 'all';
-            startDateInput.value = '';
-            endDateInput.value = '';
-            fractionalDropdown.value = 'all';
-
-            // Display all rows
-            const rows = tableBody.querySelectorAll('tr');
-            rows.forEach(row => {
-                row.style.display = '';
-            });
-        }
-
         function cancelLeave(fileNo) {
             if (confirm('Are you sure you want to cancel this leave request?')) {
                 fetch('cancelLeave/' + fileNo, {
@@ -362,5 +322,134 @@
             }
         }
     </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let table = new DataTable('#leaveTable', {
+        pageLength: 10,
+        responsive: true,
+        order: [
+            [7, 'asc'],  // Sort by status: PENDING > APPROVED > DISAPPROVED
+            [2, 'desc'], // Then, sort by Date Filed (latest to oldest)
+        ],
+        columnDefs: [
+            {
+                targets: 7, // The Status column
+                orderData: [7, 2], // First, sort by status, then by Date Filed
+                render: function(data, type, row) {
+                    const statusText = data.replace(/<[^>]+>/g, '').trim();
+
+                    let statusValue, statusClass;
+                    if (statusText === 'PENDING') {
+                        statusValue = 0;
+                        statusClass = 'pending'; // Class for styling
+                    } else if (statusText === 'APPROVED') {
+                        statusValue = 1;
+                        statusClass = 'approved';
+                    } else if (statusText === 'DISAPPROVED') {
+                        statusValue = 2;
+                        statusClass = 'disapproved'; 
+                    } else {
+                        statusValue = 3;  // Default for unknown statuses
+                        statusClass = '';
+                    }
+
+                    if (type === 'sort') {
+                        return statusValue;
+                    }
+
+                    return `<span class="status ${statusClass}">${statusText}</span>`;
+                }
+            },
+            {
+                targets: 2, // The Date Filed column 
+                render: function(data, type, row) {
+                    const date = new Date(data);
+                    return date.toLocaleDateString('en-GB');
+                },
+                type: 'date'
+            }
+        ],
+    });
+
+    function applyFilters() {
+        const status = document.getElementById('statusDropdown').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const fractionalLeave = document.getElementById('fractionalDropdown').value;
+        
+        // Apply status filter
+        if (status !== 'all') {
+            const statusRegex = `^${status}$`; // Create a regex that matches the exact status
+            table.column(7).search(statusRegex, true, false).draw();  
+        } else {
+            table.column(7).search('').draw();
+        }
+
+        // Apply date range filter
+        if (startDate && endDate) {
+            const startDateObj = new Date(startDate);
+            const endDateObj = new Date(endDate);
+
+            // Convert dates to string format for searching (e.g., 'YYYY-MM-DD')
+            const formattedStartDate = startDateObj.toISOString().split('T')[0];
+            const formattedEndDate = endDateObj.toISOString().split('T')[0];
+
+            // Apply the date range filter by modifying the column search value
+            table.column(2).search(function(settings, data, dataIndex) {
+                const rowDate = new Date(data[2]);
+                const rowDateStr = rowDate.toISOString().split('T')[0]; // Convert row date to string 'YYYY-MM-DD'
+
+                // Check if the row date falls within the selected range
+                return rowDateStr >= formattedStartDate && rowDateStr <= formattedEndDate;
+            }).draw();
+        } else {
+            // If no date range is selected, clear the date range search
+            table.column(2).search('').draw();
+        }
+
+        // Apply fractional leave filter
+        if (fractionalLeave !== 'all') {
+            if (fractionalLeave === 'Both') {
+                // Show both 'NF' and 'F' records
+                table.column(12).search('NF|F', true, false).draw(); 
+            } else if (fractionalLeave === 'NF') {
+                // Show only 'NF' records
+                table.column(12).search('^NF$', true, false).draw(); 
+            } else if (fractionalLeave === 'F') {
+                // Show only 'F' records
+                table.column(12).search('^F$', true, false).draw();  
+            }
+        } else {
+            table.column(12).search('').draw();  // Clear the search when 'all' is selected
+        }
+    }
+
+    // Listen for changes in the filters
+    document.getElementById('statusDropdown').addEventListener('change', applyFilters);
+    document.getElementById('startDate').addEventListener('change', applyFilters);
+    document.getElementById('endDate').addEventListener('change', applyFilters);
+    document.getElementById('fractionalDropdown').addEventListener('change', applyFilters);
+
+    // Clear filters button
+    document.getElementById('clearFiltersBtn').addEventListener('click', function() {
+        document.getElementById('statusDropdown').value = 'all';
+        document.getElementById('startDate').value = '';
+        document.getElementById('endDate').value = '';
+        document.getElementById('fractionalDropdown').value = 'all';
+
+        // Clear the search filters and redraw the table
+        table.search('').columns().search('').draw();
+    });
+
+});
+</script>
+
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/2.2.1/js/dataTables.min.js"></script>
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 </body>
 </html>

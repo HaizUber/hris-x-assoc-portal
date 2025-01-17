@@ -46,23 +46,33 @@
             <thead>
                 <tr>
                     <th>Employee ID</th>
-                    <th>Sick Leave Balance</th>
-                    <th>Total Leave Remaining</th>
-                    <th>Total Leave Used</th>
+                    <th>Leave Balance</th>
+                    <th>Leave Remaining</th>
+                    <th>Leave Used</th>
                     <th>Total Unpaid Sick Leave</th> 
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td><?= $leaveBalances['empID']; ?></td>
-                    <td><?= $leaveBalances['sickLeaveBalance']; ?> days</td>
-                    <td><?= $leaveBalances['totalRemainingSickLeave']; ?> days</td>
-                    <td><?= $leaveBalances['totalSickLeaveUsed']; ?> days</td>
+                    <td>
+    <?= $leaveBalances['sickLeaveBalance']; ?> 
+    <?= ($leaveBalances['sickLeaveBalance'] == 1 || $leaveBalances['sickLeaveBalance'] == 0) ? 'day' : 'days'; ?>
+</td>
+<td>
+    <?= $leaveBalances['totalRemainingSickLeave']; ?> 
+    <?= ($leaveBalances['totalRemainingSickLeave'] == 1 || $leaveBalances['totalRemainingSickLeave'] == 0) ? 'day' : 'days'; ?>
+</td>
+<td>
+    <?= $leaveBalances['totalSickLeaveUsed']; ?> 
+    <?= ($leaveBalances['totalSickLeaveUsed'] == 1 || $leaveBalances['totalSickLeaveUsed'] == 0) ? 'day' : 'days'; ?>
+</td>
+
                     <td>
                         <?php 
                             // Calculate unpaid sick leave (if any)
                             $unpaidSickLeave = $leaveBalances['totalSickLeaveUsed'] - $leaveBalances['sickLeaveBalance'];
-                            echo ($unpaidSickLeave > 0) ? $unpaidSickLeave . " days" : "0 days";
+                            echo ($unpaidSickLeave > 0) ? $unpaidSickLeave . " " . (($unpaidSickLeave == 1) ? 'day' : 'days') : "0 day";
                         ?>
                     </td>
                 </tr>
@@ -79,23 +89,33 @@
             <thead>
                 <tr>
                     <th>Employee ID</th>
-                    <th>Vacation Leave Balance</th>
-                    <th>Total Leave Remaining</th>
-                    <th>Total Leave Used</th>
+                    <th>Leave Balance</th>
+                    <th>Leave Remaining</th>
+                    <th>Leave Used</th>
                     <th>Total Unpaid Vacation Leave</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td><?= $leaveBalances['empID']; ?></td>
-                    <td><?= $leaveBalances['vacationLeaveBalance']; ?> days</td>
-                    <td><?= $leaveBalances['totalRemainingVacationLeave']; ?> days</td>
-                    <td><?= $leaveBalances['totalVacationLeaveUsed']; ?> days</td>
+                    <td>
+    <?= $leaveBalances['vacationLeaveBalance']; ?> 
+    <?= ($leaveBalances['vacationLeaveBalance'] == 1 || $leaveBalances['vacationLeaveBalance'] == 0) ? 'day' : 'days'; ?>
+</td>
+<td>
+    <?= $leaveBalances['totalRemainingVacationLeave']; ?> 
+    <?= ($leaveBalances['totalRemainingVacationLeave'] == 1 || $leaveBalances['totalRemainingVacationLeave'] == 0) ? 'day' : 'days'; ?>
+</td>
+<td>
+    <?= $leaveBalances['totalVacationLeaveUsed']; ?> 
+    <?= ($leaveBalances['totalVacationLeaveUsed'] == 1 || $leaveBalances['totalVacationLeaveUsed'] == 0) ? 'day' : 'days'; ?>
+</td>
+
                     <td>
                         <?php 
                             // Calculate unpaid vacation leave (if any)
                             $unpaidVacationLeave = $leaveBalances['totalVacationLeaveUsed'] - $leaveBalances['vacationLeaveBalance'];
-                            echo ($unpaidVacationLeave > 0) ? $unpaidVacationLeave . " days" : "0 days";
+                            echo ($unpaidVacationLeave > 0) ? $unpaidVacationLeave . " " . (($unpaidVacationLeave == 1) ? 'day' : 'days') : "0 day";
                         ?>
                     </td>
                 </tr>

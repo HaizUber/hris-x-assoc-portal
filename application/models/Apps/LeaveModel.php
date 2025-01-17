@@ -127,10 +127,18 @@ class LeaveModel extends CI_Model
         // Query to fetch leave balance information for the given employee
         $this->associates_db->select('empID, sickLeaveBalance, vacationLeaveBalance, totalSickLeaveUsed, totalVacationLeaveUsed');
         $this->associates_db->from('tblleavebalance');
-        $this->associates_db->where('empID', $employee_id);  // Ensure to filter by employee ID
+        $this->associates_db->where('empID', $employee_id); 
         $query = $this->associates_db->get();
 
         return $query->num_rows() > 0 ? $query->row_array() : null;
+    }
+
+    public function getLeaveDetails($filedNo)
+    {
+        $this->associates_db->select('lvaDateTo, lvaDateFrom, empID, lvaType'); 
+        $this->associates_db->where('lvaFiledNo', $filedNo);
+        $query = $this->associates_db->get('tblleavefile');
+        return $query->row_array(); 
     }
 
     public function updateLeaveBalance($employeeId, $leaveType, $duration)
@@ -195,6 +203,6 @@ class LeaveModel extends CI_Model
         $this->associates_db->from('tblleavefile');
         $query = $this->associates_db->get();
 
-        return $query->result_array(); // Returns an associative array of data
+        return $query->result_array(); 
     }
 }
