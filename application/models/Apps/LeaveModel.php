@@ -20,31 +20,76 @@ class LeaveModel extends CI_Model
         return $query->result_array(); // Return the results as an array
     }
 
+    public function audit_trail($table)
+    {
+        // Append "_audit" to the table name
+        $table = $table . "_audit";
+        
+        // Retrieve employee ID from session
+        $employeeId = $this->session->userdata('employee_id');
+        
+        // Prepare the audit trail data
+        $val = array(
+            'empID'  => $employeeId,  // Using the updated employee ID
+            'remarks' => NULL
+        );
+        
+        // Select the maximum audit_id from the audit table
+        $this->associates_db->select_max('audit_id');
+        $query = $this->associates_db->get($table);
+        $row = $query->row();
+        
+        // Define the WHERE clause based on the audit_id
+        $where = array(
+            'audit_id'  => $row->audit_id
+        );
+        
+        // Update the audit trail with the new data
+        $this->associates_db->update($table, $val, $where);
+        
+        // Return the audit_id of the updated row
+        return $row->audit_id;
+    }
+    
+
     public function fileLeave($data)
     {
-        return $this->associates_db->insert('tblleavefile', $data); 
-    }
-
-    public function deleteLeave($filedNo)
-    {
-        // Check if the leave exists before attempting deletion
-        $this->associates_db->where('lvaFiledNo', $filedNo);
-        if ($this->associates_db->count_all_results('tblleavefile') > 0) {
-            // Proceed with deletion if leave exists
-            $this->associates_db->where('lvaFiledNo', $filedNo);
-            if ($this->associates_db->delete('tblleavefile')) {
-                return true;
-            } else {
-                // Log the error for debugging with the database error message
-                log_message('error', 'Failed to delete leave with filed_no: ' . $filedNo . '. DB Error: ' . $this->associates_db->error()['message']);
-                return false;
-            }
+        // Insert the leave data into the tblleavefile table
+        $inserted = $this->associates_db->insert('tblleavefile', $data); 
+        
+        // If the insert is successful, add an audit trail
+        if ($inserted) {
+            // Call the audit_trail function with the relevant table name (e.g., 'tblleavefile')
+            $this->audit_trail('tblleavefile');
         }
-
-        // Log if leave is not found
-        log_message('error', 'Leave not found for filed_no: ' . $filedNo);
-        return false;
+    
+        // Return the result of the insert operation
+        return $inserted;
     }
+    
+    public function deleteLeave($filedNo)
+{
+    // Check if the leave exists before attempting deletion
+    $this->associates_db->where('lvaFiledNo', $filedNo);
+    if ($this->associates_db->count_all_results('tblleavefile') > 0) {
+        // Proceed with deletion if leave exists
+        $this->associates_db->where('lvaFiledNo', $filedNo);
+        if ($this->associates_db->delete('tblleavefile')) {
+            // If deletion is successful, log the action in the audit trail
+            $this->audit_trail('tblleavefile');  // Add the audit trail
+
+            return true;
+        } else {
+            // Log the error for debugging with the database error message
+            log_message('error', 'Failed to delete leave with filed_no: ' . $filedNo . '. DB Error: ' . $this->associates_db->error()['message']);
+            return false;
+        }
+    }
+
+    // Log if leave is not found
+    log_message('error', 'Leave not found for filed_no: ' . $filedNo);
+    return false;
+}
 
     public function approveLeave($filedNo, $approvedBy)
     {
@@ -59,6 +104,7 @@ class LeaveModel extends CI_Model
             $this->associates_db->set('lvaApprovedBy', $approvedBy); // Set the approved by information
             $this->associates_db->where('lvaFiledNo', $filedNo);
             if ($this->associates_db->update('tblleavefile')) {
+                $this->audit_trail('tblleavefile'); // Log the approval action in the audit trail
                 return true;
             } else {
                 // Log the error for debugging with the database error message
@@ -86,6 +132,7 @@ class LeaveModel extends CI_Model
             $this->associates_db->where('lvaFiledNo', $filedNo);
 
             if ($this->associates_db->update('tblleavefile')) {
+                $this->audit_trail('tblleavefile'); // Log the disapproval action in the audit trail
                 return true;
             } else {
                 // Log the error for debugging with the database error message
