@@ -66,6 +66,15 @@ public function viewBalance()
 
     $data['title'] = 'Leave Balance';
     $employee_id = $this->session->userdata('employee_id');
+    
+    if (!$employee_id) {
+        // If employee ID is not found in the session
+        $data['error'] = 'Employee ID not found. Please log in again.';
+        $this->load->view('apps/templates/header', $data);
+        $this->load->view('apps/leave/leavebalance', $data);
+        $this->load->view('apps/templates/footer');
+        return;
+    }
 
     $currentDate = date('Y-m-d');
 
@@ -93,9 +102,13 @@ public function viewBalance()
         $leaveBalances = [];
     }
 
-    // Compute used leave for SL (Sick Leave) and VL (Vacation Leave)
+    // Initialize variables for used leaves and CDLD count
     $usedSL = 0;
     $usedVL = 0;
+    $cdldVlCount = 0;  // Count for CDLD leaves
+
+    // Get the count of CDLD VL leaves for the employee within the current school year range
+    $cdldVlCount = $this->LeaveModel->countCdldVlLeavesForEmployee($employee_id, $startYear, $endYear);
 
     // Get all approved leave records for the employee within the current school year range
     $approvedLeaves = $this->LeaveModel->getApprovedLeavesForEmployee($employee_id, $startYear, $endYear);
@@ -109,9 +122,15 @@ public function viewBalance()
         if ($leave['lvaType'] == 'SL') {
             $usedSL += $daysUsed;
         } elseif ($leave['lvaType'] == 'VL') {
-            $usedVL += $daysUsed;
+            // Check if lvaReason exists and is not null
+            if (isset($leave['lvaReason']) && strtolower($leave['lvaReason']) != 'cdld') {
+                $usedVL += $daysUsed;
+            }
         }
     }
+
+    // Log the amount of used VL being passed to the view
+    log_message('debug', "Used VL (Vacation Leave) being passed to the view: {$usedVL} days");
 
     // Update the leave balances with the used SL and VL
     if ($leaveBalances) {
@@ -122,6 +141,16 @@ public function viewBalance()
         $leaveBalances['used_VL'] = $usedVL;
     }
 
+    // Get user details using the getuserDetails function
+    $userDetails = $this->LeaveModel->getuserDetails($employee_id);  // Fetch user details from LeaveModel
+    if ($userDetails) {
+        $data['userDetails'] = $userDetails;  // Add user details to the data array
+    } else {
+        $data['error'] = 'Unable to fetch user details.';
+    }
+
+    // Pass CDLD VL count to the view
+    $data['cdldVlCount'] = $cdldVlCount;
     $data['leaveBalances'] = $leaveBalances;
 
     // Load the views
@@ -129,7 +158,6 @@ public function viewBalance()
     $this->load->view('apps/leave/leavebalance', $data);
     $this->load->view('apps/templates/footer');
 }
-
 
 public function submitLeave()
 {
