@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Approve Leave</title>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https:////cdn.datatables.net/2.2.1/css/dataTables.dataTables.min.css">
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -71,6 +74,16 @@
         .disapproved {
             background-color: #f44336; /* Red for disapproved */
         }
+    /* Container for the table */
+    .table-container {
+        width: 90%;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow-x: auto; /* Allows horizontal scrolling if the table overflows */
+    }
 
         table {
             margin: 20px auto;
@@ -177,10 +190,10 @@
             <select class="dropdown" id="fractionalDropdown">
                 <option value="all">Both</option>
                 <option value="NF">Fractional</option>
-                <option value="nonNF">Non-Fractional</option>
+                <option value="F">Non-Fractional</option>
             </select>
         </div>
-        <div>
+    <div>
         <!-- Clear Filters Button -->
         <button class="clear-btn" id="clearFiltersBtn">Clear Filters</button>
     </div>
@@ -205,7 +218,7 @@
         $this->associates_db->select('empApprovingOfficer');
         $this->associates_db->from('tblApprovingOfficer');
         $this->associates_db->where('empID', $employee_id);
-        $query = $this->dassociates_db->get();
+        $query = $this->associates_db->get();
 
         // Get the list of empApprovingOfficer IDs
         $approvingEmployeeIDs = array_column($query->result_array(), 'empApprovingOfficer');
@@ -229,8 +242,8 @@
     });
 ?>
 
-
-    <table id="leaveTable">
+<div class="table-container">
+    <table id="leaveTable" class="display">
         <thead>
             <tr>
                 <th>Filed No</th>
@@ -257,7 +270,7 @@
                     <tr class="status-row" data-status="<?= $leave['lvaStatus']; ?>" data-date="<?= $leave['lvaDateFiled']; ?>" data-filedno="<?= $leave['lvaFiledNo']; ?>" data-filedtype="<?= $leave['lvaFiledType']; ?>">
                         <td><?= $leave['lvaFiledNo']; ?></td>
                         <td><?= $leave['empID']; ?></td>
-                        <td><?= $leave['lvaDateFiled']; ?></td>
+                        <td><?= date('Y-m-d', strtotime($leave['lvaDateFiled'])); ?></td> <!-- Ensure date is in YYYY-MM-DD format -->
                         <td><?= $leave['lvaDateFrom']; ?></td>
                         <td><?= $leave['lvaDateTo']; ?></td>
                         <td><?= $leave['lvaType']; ?></td>
@@ -287,17 +300,24 @@
                         <td><?= $leave['lvaFiledType']; ?></td>
                         <td><?= $leave['lvaStartTime']; ?></td>
                         <td><?= $leave['lvaEndTime']; ?></td>
-                        <td><?= $leave['lvaMedCert']; ?></td>
-                        
                         <td>
-                        <?php if ($leave['lvaStatus'] === 'PENDING') : ?>
-                            <button class="approve-btn" onclick="approveLeave('<?= $leave['lvaFiledNo']; ?>')">Approve</button>
-                            <button class="disapprove-btn" onclick="disapproveLeave('<?= $leave['lvaFiledNo']; ?>')">Disapprove</button>
-                        <?php else : ?>
-                            <span>
-                                <?= $leave['lvaStatus'] === 'APPROVED' ? 'Already Approved' : 'Already Disapproved'; ?>
-                            </span>
-                        <?php endif; ?>
+                            <?php if (!empty($leave['lvaMedCert'])) : ?>
+                                <a href="/das/uploads/medcert/<?= $leave['lvaMedCert']; ?>" target="_blank" class="med-cert-link">
+                                    View Certificate
+                                </a>
+                            <?php else : ?>
+                                No Certificate
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <?php if ($leave['lvaStatus'] === 'PENDING') : ?>
+                                <button class="approve-btn" onclick="approveLeave('<?= $leave['lvaFiledNo']; ?>')">Approve</button>
+                                <button class="disapprove-btn" onclick="disapproveLeave('<?= $leave['lvaFiledNo']; ?>')">Disapprove</button>
+                            <?php else : ?>
+                                <span>
+                                    <?= $leave['lvaStatus'] === 'APPROVED' ? 'Already Approved' : 'Already Disapproved'; ?>
+                                </span>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -308,162 +328,221 @@
             <?php endif; ?>
         </tbody>
     </table>
+</div>
 
-    <script>
-    const statusDropdown = document.getElementById('statusDropdown');
-    const startDateInput = document.getElementById('startDate');
-    const endDateInput = document.getElementById('endDate');
-    const tableBody = document.getElementById('leaveTableBody');
-    const fractionalDropdown = document.getElementById('fractionalDropdown');
-    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+<script>
+    // Function to approve leave
+    function approveLeave(fileNo) {
+        if (confirm('Are you sure you want to approve this leave request?')) {
+            fetch('approveLeave/' + fileNo, {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Leave request has been approved.');
+                    const row = document.querySelector(`tr[data-filedno="${fileNo}"]`);
+                    if (row) {
+                        const statusCell = row.querySelector('.status');
+                        const approveButton = row.querySelector('.approve-btn'); // Get the approve button
+                        const disapproveButton = row.querySelector('.disapprove-btn'); // Get the disapprove button
 
-    // Function to filter the table based on selected status, date range, and fractional type
-function filterTable() {
-    const status = statusDropdown.value.toUpperCase();
-    const startDate = startDateInput.value;
-    const endDate = endDateInput.value;
-    const fractionalType = fractionalDropdown.value;
+                        // Update status text and class
+                        statusCell.textContent = 'APPROVED';
+                        statusCell.classList.remove('pending');
+                        statusCell.classList.add('approved');
 
-    const rows = tableBody.getElementsByClassName('status-row');
-    Array.from(rows).forEach(row => {
-        const rowStatus = row.dataset.status.toUpperCase();
-        const rowDate = row.dataset.date;
-        const rowFiledType = row.dataset.filedtype; // Get the fractional type attribute
-        let showRow = true;
-
-        // Filter by status
-        if (status !== 'ALL' && rowStatus !== status) {
-            showRow = false;
-        }
-
-        // Filter by date range if both dates are provided
-        if (startDate && endDate) {
-            const rowDateFrom = new Date(rowDate);
-            const startDateRange = new Date(startDate);
-            const endDateRange = new Date(endDate);
-
-            if (rowDateFrom < startDateRange || rowDateFrom > endDateRange) {
-                showRow = false;
-            }
-        }
-
-        // Filter by fractional type
-        if (fractionalType !== 'all') {
-            if (
-                (fractionalType === 'NF' && rowFiledType !== 'NF') || 
-                (fractionalType === 'nonNF' && rowFiledType === 'NF')
-            ) {
-                showRow = false;
-            }
-        }
-
-        // Set row visibility based on filters
-        row.style.display = showRow ? '' : 'none';
-    });
-}
-
-
-    // Function to clear the filters
-    clearFiltersBtn.addEventListener('click', () => {
-        statusDropdown.value = 'all';
-        startDateInput.value = '';
-        endDateInput.value = '';
-        filterTable();
-    });
-
-// Function to approve leave
-function approveLeave(fileNo) {
-    if (confirm('Are you sure you want to approve this leave request?')) {
-        fetch('approveLeave/' + fileNo, {
-            method: 'POST',
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                alert('Leave request has been approved.');
-                const row = document.querySelector(`tr[data-filedno="${fileNo}"]`);
-                if (row) {
-                    const statusCell = row.querySelector('.status');
-                    const approveButton = row.querySelector('.approve-btn'); // Get the approve button
-                    const disapproveButton = row.querySelector('.disapprove-btn'); // Get the disapprove button
-
-                    // Update status text and class
-                    statusCell.textContent = 'APPROVED';
-                    statusCell.classList.remove('pending');
-                    statusCell.classList.add('approved');
-
-                    // Remove the approve and disapprove buttons
-                    if (approveButton) {
-                        approveButton.style.display = 'none';
+                        // Remove the approve and disapprove buttons
+                        if (approveButton) {
+                            approveButton.style.display = 'none';
+                        }
+                        if (disapproveButton) {
+                            disapproveButton.style.display = 'none'; 
+                        }
                     }
-                    if (disapproveButton) {
-                        disapproveButton.style.display = 'none'; 
-                    }
+                } else {
+                    alert('Failed to approve leave request. Please try again.');
                 }
-            } else {
-                alert('Failed to approve leave request. Please try again.');
-            }
-        })
-        .catch(error => {
-            alert('An error occurred. Please try again.');
-        });
+            })
+            .catch(error => {
+                alert('An error occurred. Please try again.');
+            });
+        }
     }
-}
 
     function disapproveLeave(fileNo) {
-    const comment = prompt('Please provide a comment for disapproving this leave:');
+        const comment = prompt('Please provide a comment for disapproving this leave:');
 
-    if (comment) {
-        console.log('Sending comment:', comment);
-        fetch('disapproveLeave/' + fileNo, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                comment: comment, // Send the comment
-            }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Response from server:', data); // Debugging line
+        if (comment) {
+            fetch('disapproveLeave/' + fileNo, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    comment: comment, // Send the comment
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
 
-            if (data.status === 'success') {
-                alert('Leave request has been disapproved.');
-                const row = document.querySelector(`tr[data-filedno="${fileNo}"]`);
-                if (row) {
-                    const statusCell = row.querySelector('.status');
-                    const disapproveButton = row.querySelector('.disapprove-btn'); // Get the disapprove button
-                    const approveButton = row.querySelector('.approve-btn'); // Get the approve button
+                if (data.status === 'success') {
+                    alert('Leave request has been disapproved.');
+                    const row = document.querySelector(`tr[data-filedno="${fileNo}"]`);
+                    if (row) {
+                        const statusCell = row.querySelector('.status');
+                        const disapproveButton = row.querySelector('.disapprove-btn'); // Get the disapprove button
+                        const approveButton = row.querySelector('.approve-btn'); // Get the approve button
 
-                    // Update status text and class
-                    statusCell.textContent = 'DISAPPROVED';
-                    statusCell.classList.remove('pending');
-                    statusCell.classList.add('disapproved');
+                        // Update status text and class
+                        statusCell.textContent = 'DISAPPROVED';
+                        statusCell.classList.remove('pending');
+                        statusCell.classList.add('disapproved');
 
-                    // Hide the disapprove and approve buttons
-                    if (disapproveButton) {
-                        disapproveButton.style.display = 'none'; 
+                        // Hide the disapprove and approve buttons
+                        if (disapproveButton) {
+                            disapproveButton.style.display = 'none'; 
+                        }
+                        if (approveButton) {
+                            approveButton.style.display = 'none'; 
+                        }
                     }
-                    if (approveButton) {
-                        approveButton.style.display = 'none'; 
-                    }
+                } else {
+                    alert('Failed to disapprove leave request. Please try again.');
                 }
-            } else {
-                alert('Failed to disapprove leave request. Please try again.');
-            }
-        })
-        .catch(error => {
-            alert('An error occurred. Please try again.');
-        });
+            })
+            .catch(error => {
+                alert('An error occurred. Please try again.');
+            });
+        }
     }
-}
-
-    statusDropdown.addEventListener('change', filterTable);
-    startDateInput.addEventListener('change', filterTable);
-    endDateInput.addEventListener('change', filterTable);
-    fractionalDropdown.addEventListener('change', filterTable);
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let table = new DataTable('#leaveTable', {
+        pageLength: 10,
+        responsive: true,
+        order: [
+            [7, 'asc'],  // Sort by status: PENDING > APPROVED > DISAPPROVED
+            [2, 'desc'], // Then, sort by Date Filed (latest to oldest)
+        ],
+        columnDefs: [
+            {
+                targets: 7, // The Status column
+                orderData: [7, 2], // First, sort by status, then by Date Filed
+                render: function(data, type, row) {
+                    const statusText = data.replace(/<[^>]+>/g, '').trim();
+
+                    let statusValue, statusClass;
+                    if (statusText === 'PENDING') {
+                        statusValue = 0;
+                        statusClass = 'pending'; // Class for styling
+                    } else if (statusText === 'APPROVED') {
+                        statusValue = 1;
+                        statusClass = 'approved';
+                    } else if (statusText === 'DISAPPROVED') {
+                        statusValue = 2;
+                        statusClass = 'disapproved'; 
+                    } else {
+                        statusValue = 3;  // Default for unknown statuses
+                        statusClass = '';
+                    }
+
+                    if (type === 'sort') {
+                        return statusValue;
+                    }
+
+                    return `<span class="status ${statusClass}">${statusText}</span>`;
+                }
+            },
+            {
+                targets: 2, // The Date Filed column 
+                render: function(data, type, row) {
+                    const date = new Date(data);
+                    return date.toLocaleDateString('en-GB');
+                },
+                type: 'date'
+            }
+        ],
+    });
+
+    function applyFilters() {
+        const status = document.getElementById('statusDropdown').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const fractionalLeave = document.getElementById('fractionalDropdown').value;
+
+        // Apply status filter
+        if (status !== 'all') {
+            const statusRegex = `^${status}$`; // Create a regex that matches the exact status
+            table.column(7).search(statusRegex, true, false).draw();  
+        } else {
+            table.column(7).search('').draw();
+        }
+
+        // Apply date range filter
+        if (startDate && endDate) {
+            const startDateObj = new Date(startDate);
+            const endDateObj = new Date(endDate);
+
+            // Convert dates to string format for searching (e.g., 'YYYY-MM-DD')
+            const formattedStartDate = startDateObj.toISOString().split('T')[0];
+            const formattedEndDate = endDateObj.toISOString().split('T')[0];
+
+            // Apply the date range filter by modifying the column search value
+            table.column(2).search(function(settings, data, dataIndex) {
+                const rowDate = new Date(data[2]);
+                const rowDateStr = rowDate.toISOString().split('T')[0]; // Convert row date to string 'YYYY-MM-DD'
+
+                // Check if the row date falls within the selected range
+                return rowDateStr >= formattedStartDate && rowDateStr <= formattedEndDate;
+            }).draw();
+        } else {
+            // If no date range is selected, clear the date range search
+            table.column(2).search('').draw();
+        }
+
+        // Apply fractional leave filter
+        if (fractionalLeave !== 'all') {
+            if (fractionalLeave === 'Both') {
+                // Show both 'NF' and 'F' records
+                table.column(11).search('NF|F', true, false).draw(); 
+            } else if (fractionalLeave === 'NF') {
+                // Show only 'NF' records
+                table.column(11).search('^NF$', true, false).draw(); 
+            } else if (fractionalLeave === 'F') {
+                // Show only 'F' records
+                table.column(11).search('^F$', true, false).draw();  
+            }
+        } else {
+            table.column(11).search('').draw();  // Clear the search when 'all' is selected
+        }
+    }
+
+    // Listen for changes in the filters
+    document.getElementById('statusDropdown').addEventListener('change', applyFilters);
+    document.getElementById('startDate').addEventListener('change', applyFilters);
+    document.getElementById('endDate').addEventListener('change', applyFilters);
+    document.getElementById('fractionalDropdown').addEventListener('change', applyFilters);
+
+    // Clear filters button
+    document.getElementById('clearFiltersBtn').addEventListener('click', function() {
+        document.getElementById('statusDropdown').value = 'all';
+        document.getElementById('startDate').value = '';
+        document.getElementById('endDate').value = '';
+        document.getElementById('fractionalDropdown').value = 'all';
+
+        // Clear the search filters and redraw the table
+        table.search('').columns().search('').draw();
+    });
+
+});
+</script>
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/2.2.1/js/dataTables.min.js"></script>
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 </body>
 </html>

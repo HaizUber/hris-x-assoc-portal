@@ -211,23 +211,6 @@ public function submitLeave()
         $formData['lvaEndTime'] = $endTime;
     }
 
-    $duration = ($dateTo - $dateFrom) / (60 * 60 * 24) + 1;
-
-    // Update Sick Leave balance after validation
-    if ($formData['lvaType'] == 'SL') {
-        $this->load->model('LeaveModel'); // Assuming you have a model for leave balance
-        // Subtract the leave duration from the total sick leave balance
-        $this->LeaveModel->updateLeaveBalance($employeeId, 'SL', $duration);
-    }
-
-    // If the leave type is Vacation Leave
-    if ($formData['lvaType'] == 'VL') {
-        // Update Vacation Leave balance
-        $this->load->model('LeaveModel'); // Assuming you have a model for leave balance
-        // Subtract the leave duration from the total vacation leave balance
-        $this->LeaveModel->updateLeaveBalance($employeeId, 'VL', $duration);
-    }
-
     // Insert the leave data into the database
     if ($this->LeaveModel->fileLeave($formData)) {
         // Redirect with a success message
@@ -273,19 +256,24 @@ public function submitLeave()
     
     public function approveLeave($filedNo)
     {
-        
-        $filedNo = htmlspecialchars(strip_tags($filedNo)); // Basic sanitization, improve if needed
-    
+        // Sanitize input
+        $filedNo = htmlspecialchars(strip_tags($filedNo));
         if (empty($filedNo)) {
             echo json_encode(['status' => 'error', 'message' => 'Invalid leave request.']);
             return;
         }
     
+        $this->load->model('LeaveModel');
+    
         // Get the current logged-in user's employee_id
         $employeeId = $this->session->userdata('employee_id');
-        $this->associates_db = $this->load->database('associates', TRUE);
+        if (empty($employeeId)) {
+            echo json_encode(['status' => 'error', 'message' => 'User not logged in or session expired.']);
+            return;
+        }
     
-        // Query the database for the user's first_name and last_name
+        // Load the associates database and fetch approver details
+        $this->associates_db = $this->load->database('associates', TRUE);
         $this->associates_db->select('first_name, last_name');
         $this->associates_db->from('associates');
         $this->associates_db->where('employee_id', $employeeId);
@@ -300,7 +288,39 @@ public function submitLeave()
         // Combine first_name and last_name to form the full name
         $approvedBy = $user->first_name . ' ' . $user->last_name;
     
-        // Call the model's approve method
+        // Fetch leave details based on filedNo
+        $leaveDetails = $this->LeaveModel->getLeaveDetails($filedNo);
+        if (!$leaveDetails) {
+            echo json_encode(['status' => 'error', 'message' => 'Leave details not found.']);
+            return;
+        }
+    
+        // Validate required fields in leaveDetails
+        if (!isset($leaveDetails['lvaDateTo'], $leaveDetails['lvaDateFrom'], $leaveDetails['empID'], $leaveDetails['lvaType'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Incomplete leave details.']);
+            return;
+        }
+    
+        // Calculate the leave duration
+        $dateFrom = strtotime($leaveDetails['lvaDateFrom']);
+        $dateTo = strtotime($leaveDetails['lvaDateTo']);
+        if ($dateFrom === false || $dateTo === false) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid date format in leave details.']);
+            return;
+        }
+    
+        $duration = ($dateTo - $dateFrom) / (60 * 60 * 24) + 1;
+    
+        // Update leave balance for valid leave types
+        if (in_array($leaveDetails['lvaType'], ['SL', 'VL'])) {
+            $this->LeaveModel->updateLeaveBalance(
+                $leaveDetails['empID'],
+                $leaveDetails['lvaType'],
+                $duration
+            );
+        }
+    
+        // Approve the leave in the database
         $result = $this->LeaveModel->approveLeave($filedNo, $approvedBy);
     
         if ($result) {
@@ -311,6 +331,8 @@ public function submitLeave()
             echo json_encode(['status' => 'error', 'message' => 'Failed to approve the leave request.']);
         }
     }
+    
+    
     
 
     public function disapproveLeave($filedNo)
