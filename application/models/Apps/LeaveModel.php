@@ -122,14 +122,6 @@ class LeaveModel extends CI_Model
         }
     }
 
-    public function getLeaveDetails($filedNo)
-    {
-        $this->associates_db->select('lvaDateTo, lvaDateFrom, empID, lvaType'); 
-        $this->associates_db->where('lvaFiledNo', $filedNo);
-        $query = $this->associates_db->get('tblleavefile');
-        return $query->row_array(); 
-    }
-
     public function getLeaveBalancesForEmployee($empID, $schoolYear)
     {
         $this->associates_db->select('empID, schoolyear, SL_Balance, VL_Balance, used_SL, used_VL');
@@ -161,17 +153,36 @@ class LeaveModel extends CI_Model
 
 public function getApprovedLeavesForEmployee($employee_id, $startYear, $endYear)
 {
-    // Get all approved leave records for the employee where the year of lvaDateFiled is within the school year range
+    // Get the start_date and end_date for the given school year
+    $this->associates_db->select('start_date, end_date');
+    $this->associates_db->from('tblleavebalance');
+    $this->associates_db->where('schoolyear', "{$startYear}{$endYear}");
+    $query = $this->associates_db->get();
+    $schoolYearData = $query->row_array();
+
+    // Check if school year data exists
+    if (!$schoolYearData) {
+        return []; // No school year data found
+    }
+
+    $startDate = $schoolYearData['start_date'];
+    $endDate = $schoolYearData['end_date'];
+
+    // Get all approved leave records for the employee within the school year range
     $this->associates_db->select('lvaDays, lvaType, lvaDateFiled');
     $this->associates_db->from('tblleavefile');
     $this->associates_db->where('empID', $employee_id);
     $this->associates_db->where('lvaStatus', 'APPROVED');
-    $this->associates_db->where('YEAR(lvaDateFiled) >=', $startYear);  // Ensure year is >= start year of school year
-    $this->associates_db->where('YEAR(lvaDateFiled) <=', $endYear);    // Ensure year is <= end year of school year
+    
+    // Ensure the leave date is within the school year range (start_date and end_date)
+    $this->associates_db->where('lvaDateFiled >=', $startDate);
+    $this->associates_db->where('lvaDateFiled <=', $endDate);
+    
     $query = $this->associates_db->get();
 
     return $query->result_array();
 }
+
 
 public function updateLeaveBalance($employee_id, $schoolYearRange, $usedSL, $usedVL)
 {
@@ -200,6 +211,14 @@ public function updateLeaveBalance($employee_id, $schoolYearRange, $usedSL, $use
 
         $this->associates_db->insert('tblleavebalance', $data);
     }
+}
+
+public function getLeaveDetails($filedNo)
+{
+    $this->associates_db->select('lvaDateTo, lvaDateFrom, empID, lvaType'); 
+    $this->associates_db->where('lvaFiledNo', $filedNo);
+    $query = $this->associates_db->get('tblleavefile');
+    return $query->row_array(); 
 }
 
     public function getAllLeaveApplications()
