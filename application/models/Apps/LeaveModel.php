@@ -122,17 +122,6 @@ class LeaveModel extends CI_Model
         }
     }
 
-    public function getLeaveBalances($employee_id)
-    {
-        // Query to fetch leave balance information for the given employee
-        $this->associates_db->select('empID, sickLeaveBalance, vacationLeaveBalance, totalSickLeaveUsed, totalVacationLeaveUsed');
-        $this->associates_db->from('tblleavebalance');
-        $this->associates_db->where('empID', $employee_id); 
-        $query = $this->associates_db->get();
-
-        return $query->num_rows() > 0 ? $query->row_array() : null;
-    }
-
     public function getLeaveDetails($filedNo)
     {
         $this->associates_db->select('lvaDateTo, lvaDateFrom, empID, lvaType'); 
@@ -141,45 +130,78 @@ class LeaveModel extends CI_Model
         return $query->row_array(); 
     }
 
-    public function updateLeaveBalance($employeeId, $leaveType, $duration)
+    public function getLeaveBalancesForEmployee($empID, $schoolYear)
     {
-        // Check if the employee ID exists in tblleavebalance before updating
-        $this->associates_db->select('empID');
+        $this->associates_db->select('empID, schoolyear, SL_Balance, VL_Balance, used_SL, used_VL');
         $this->associates_db->from('tblleavebalance');
-        $this->associates_db->where('empID', $employeeId);
+        $this->associates_db->where('empID', $empID);
+        $this->associates_db->where('schoolyear', $schoolYear);
         $query = $this->associates_db->get();
     
-        if ($query->num_rows() == 0) {
-            log_message('error', 'Employee ID ' . $employeeId . ' not found in tblleavebalance.');
-            return false; // Employee not found
-        }
+        // Log debug information
+        log_message('debug', 'SQL Query: ' . $this->associates_db->last_query());
+        log_message('debug', 'Query Result: ' . json_encode($query->row_array()));
     
-        // Construct the SQL query based on the leave type
-        if ($leaveType == 'VL') {
-            $sql = "UPDATE tblleavebalance 
-                    SET totalVacationLeaveUsed = totalVacationLeaveUsed + ? 
-                    WHERE empID = ?";
-        } elseif ($leaveType == 'SL') {
-            $sql = "UPDATE tblleavebalance 
-                    SET totalSickLeaveUsed = totalSickLeaveUsed + ? 
-                    WHERE empID = ?";
-        } else {
-            log_message('error', 'Invalid leave type: ' . $leaveType);
-            return false; // Invalid leave type
-        }
-    
-        // Run the query with the parameters
-        $this->associates_db->query($sql, array((int)$duration, $employeeId));
-    
-        // Check if the update was successful
-        if ($this->associates_db->affected_rows() > 0) {
-            return true; // Update successful
-        } else {
-            log_message('error', 'Failed to update leave balance for employee ID: ' . $employeeId);
-            return false; // Update failed
-        }
+        return $query->row_array();  // Return a single row or null
     }
     
+
+    public function getSchoolYearByDate($date)
+{
+    // Query the database to find the school year that includes the given date
+    $this->associates_db->select('start_date, end_date');
+    $this->associates_db->from('tblleavebalance');
+    $this->associates_db->where('start_date <=', $date);  // The start date must be before or equal to the given date
+    $this->associates_db->where('end_date >=', $date);    // The end date must be after or equal to the given date
+    $this->associates_db->limit(1);  // To make sure only one record is returned
+    $query = $this->associates_db->get();
+
+    return $query->row_array();  // This will return start_date and end_date
+}
+
+public function getApprovedLeavesForEmployee($employee_id, $startYear, $endYear)
+{
+    // Get all approved leave records for the employee where the year of lvaDateFiled is within the school year range
+    $this->associates_db->select('lvaDays, lvaType, lvaDateFiled');
+    $this->associates_db->from('tblleavefile');
+    $this->associates_db->where('empID', $employee_id);
+    $this->associates_db->where('lvaStatus', 'APPROVED');
+    $this->associates_db->where('YEAR(lvaDateFiled) >=', $startYear);  // Ensure year is >= start year of school year
+    $this->associates_db->where('YEAR(lvaDateFiled) <=', $endYear);    // Ensure year is <= end year of school year
+    $query = $this->associates_db->get();
+
+    return $query->result_array();
+}
+
+public function updateLeaveBalance($employee_id, $schoolYearRange, $usedSL, $usedVL)
+{
+    // Check if leave balance entry exists for this employee and school year
+    $this->associates_db->where('empID', $employee_id);
+    $this->associates_db->where('schoolyear', $schoolYearRange);
+    $query = $this->associates_db->get('tblleavebalance');
+
+    if ($query->num_rows() > 0) {
+        // Update the used leave values if the record exists
+        $data = array(
+            'used_VL' => $usedVL,
+            'used_SL' => $usedSL
+        );
+
+        $this->associates_db->where('empID', $employee_id);
+        $this->associates_db->where('schoolyear', $schoolYearRange);
+        $this->associates_db->update('tblleavebalance', $data);
+    } else {
+        $data = array(
+            'empID' => $employee_id,
+            'schoolyear' => $schoolYearRange,
+            'used_VL' => $usedVL,
+            'used_SL' => $usedSL
+        );
+
+        $this->associates_db->insert('tblleavebalance', $data);
+    }
+}
+
     public function getAllLeaveApplications()
     {
         $this->associates_db->select('

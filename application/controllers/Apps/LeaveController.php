@@ -62,28 +62,71 @@ public function viewApprove()
 
 public function viewBalance()
 {
-    // Load the view for the leave balance page
-    $data['title'] = 'Leave Balance';
+    $this->load->model('LeaveModel');
 
-    // Get the employee ID from session
+    $data['title'] = 'Leave Balance';
     $employee_id = $this->session->userdata('employee_id');
 
-    // Get leave balances for the employee
-    $leaveBalances = $this->LeaveModel->getLeaveBalances($employee_id);
+    $currentDate = date('Y-m-d');
 
-    // Check if leave data is found, and format it for the view
-    if ($leaveBalances) {
-        // Calculate remaining leave in whole days (ensuring the balance never becomes negative)
-        $leaveBalances['totalRemainingSickLeave'] = max(0, intval($leaveBalances['sickLeaveBalance'] - $leaveBalances['totalSickLeaveUsed']));
-        $leaveBalances['totalRemainingVacationLeave'] = max(0, intval($leaveBalances['vacationLeaveBalance'] - $leaveBalances['totalVacationLeaveUsed']));
+    // Get the current school year
+    $schoolYear = $this->LeaveModel->getSchoolYearByDate($currentDate);
+
+    // Validate school year data
+    if (!$schoolYear || !isset($schoolYear['start_date']) || !isset($schoolYear['end_date'])) {
+        $data['error'] = 'Unable to determine the school year for the current date.';
+        $this->load->view('apps/templates/header', $data);
+        $this->load->view('apps/leave/leavebalance', $data);
+        $this->load->view('apps/templates/footer');
+        return;
     }
 
-    // Pass the leave balances data to the view
-    $data['leaveBalances'] = $leaveBalances;  // Ensure the correct key is used here
+    $startYear = date('Y', strtotime($schoolYear['start_date']));
+    $endYear = date('Y', strtotime($schoolYear['end_date']));
+    $schoolYearRange = "{$startYear}{$endYear}";
 
-    // Load the necessary views
+    // Get leave balances for the employee
+    $leaveBalances = $this->LeaveModel->getLeaveBalancesForEmployee($employee_id, $schoolYearRange);
+
+    if (!$leaveBalances) {
+        $data['error'] = 'No leave balance data found for this employee in the current school year.';
+        $leaveBalances = [];
+    }
+
+    // Compute used leave for SL (Sick Leave) and VL (Vacation Leave)
+    $usedSL = 0;
+    $usedVL = 0;
+
+    // Get all approved leave records for the employee within the current school year range
+    $approvedLeaves = $this->LeaveModel->getApprovedLeavesForEmployee($employee_id, $startYear, $endYear);
+
+    // Loop through each approved leave and compute the used leave
+    foreach ($approvedLeaves as $leave) {
+        $lvaDays = $leave['lvaDays'];
+        $daysUsed = $lvaDays / 8; // Convert hours to days (1 day = 8 hours)
+
+        // Add to used leave (based on the type of leave)
+        if ($leave['lvaType'] == 'SL') {
+            $usedSL += $daysUsed;
+        } elseif ($leave['lvaType'] == 'VL') {
+            $usedVL += $daysUsed;
+        }
+    }
+
+    // Update the leave balances with the used SL and VL
+    if ($leaveBalances) {
+        // Update used leave in tblleavebalance
+        $this->LeaveModel->updateLeaveBalance($employee_id, $schoolYearRange, $usedSL, $usedVL);
+
+        $leaveBalances['used_SL'] = $usedSL;
+        $leaveBalances['used_VL'] = $usedVL;
+    }
+
+    $data['leaveBalances'] = $leaveBalances;
+
+    // Load the views
     $this->load->view('apps/templates/header', $data);
-    $this->load->view('apps/leave/leavebalance', $data);  // This will load the leavebalance view
+    $this->load->view('apps/leave/leavebalance', $data);
     $this->load->view('apps/templates/footer');
 }
 
@@ -288,38 +331,7 @@ public function submitLeave()
         // Combine first_name and last_name to form the full name
         $approvedBy = $user->first_name . ' ' . $user->last_name;
     
-        // Fetch leave details based on filedNo
-        $leaveDetails = $this->LeaveModel->getLeaveDetails($filedNo);
-        if (!$leaveDetails) {
-            echo json_encode(['status' => 'error', 'message' => 'Leave details not found.']);
-            return;
-        }
-    
-        // Validate required fields in leaveDetails
-        if (!isset($leaveDetails['lvaDateTo'], $leaveDetails['lvaDateFrom'], $leaveDetails['empID'], $leaveDetails['lvaType'])) {
-            echo json_encode(['status' => 'error', 'message' => 'Incomplete leave details.']);
-            return;
-        }
-    
-        // Calculate the leave duration
-        $dateFrom = strtotime($leaveDetails['lvaDateFrom']);
-        $dateTo = strtotime($leaveDetails['lvaDateTo']);
-        if ($dateFrom === false || $dateTo === false) {
-            echo json_encode(['status' => 'error', 'message' => 'Invalid date format in leave details.']);
-            return;
-        }
-    
-        $duration = ($dateTo - $dateFrom) / (60 * 60 * 24) + 1;
-    
-        // Update leave balance for valid leave types
-        if (in_array($leaveDetails['lvaType'], ['SL', 'VL'])) {
-            $this->LeaveModel->updateLeaveBalance(
-                $leaveDetails['empID'],
-                $leaveDetails['lvaType'],
-                $duration
-            );
-        }
-    
+      
         // Approve the leave in the database
         $result = $this->LeaveModel->approveLeave($filedNo, $approvedBy);
     
@@ -332,9 +344,6 @@ public function submitLeave()
         }
     }
     
-    
-    
-
     public function disapproveLeave($filedNo)
     {
         // Get the raw POST data
