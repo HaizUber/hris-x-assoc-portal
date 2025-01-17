@@ -156,7 +156,6 @@ class LeaveModel extends CI_Model
     $this->associates_db->limit(1);  // To make sure only one record is returned
     $query = $this->associates_db->get();
 
-    // Return the result as an associative array or null if no match is found
     return $query->row_array();  // This will return start_date and end_date
 }
 
@@ -192,7 +191,6 @@ public function updateLeaveBalance($employee_id, $schoolYearRange, $usedSL, $use
         $this->associates_db->where('schoolyear', $schoolYearRange);
         $this->associates_db->update('tblleavebalance', $data);
     } else {
-        // If no record exists, you can insert a new record
         $data = array(
             'empID' => $employee_id,
             'schoolyear' => $schoolYearRange,

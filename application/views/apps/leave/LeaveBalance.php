@@ -72,7 +72,7 @@
                     </td>
                     <td>
                         <?php 
-                            // Calculate unpaid sick leave (if any)
+                            // Calculate unpaid sick leave
                             $unpaidSickLeave = $leaveBalances['used_SL'] - $leaveBalances['SL_Balance'];
                             echo ($unpaidSickLeave > 0) ? $unpaidSickLeave . " " . (($unpaidSickLeave == 1 || $unpaidSickLeave == 0) ? 'day' : 'days') : "0 day";
                         ?>
@@ -117,7 +117,7 @@
             </td>
             <td>
                 <?php 
-                    // Calculate unpaid vacation leave (if any)
+                    // Calculate unpaid vacation leave 
                     $unpaidVacationLeave = $leaveBalances['used_VL'] - $leaveBalances['VL_Balance'];
                     echo ($unpaidVacationLeave > 0) ? $unpaidVacationLeave . " " . (($unpaidVacationLeave == 1 || $unpaidVacationLeave == 0) ? 'day' : 'days') : "0 day";
                 ?>

@@ -81,7 +81,6 @@ public function viewBalance()
         return;
     }
 
-    // Derive the school year as "2024-2025"
     $startYear = date('Y', strtotime($schoolYear['start_date']));
     $endYear = date('Y', strtotime($schoolYear['end_date']));
     $schoolYearRange = "{$startYear}{$endYear}";
@@ -103,7 +102,7 @@ public function viewBalance()
 
     // Loop through each approved leave and compute the used leave
     foreach ($approvedLeaves as $leave) {
-        $lvaDays = $leave['lvaDays']; // Assuming lvaDays is the number of hours of leave
+        $lvaDays = $leave['lvaDays'];
         $daysUsed = $lvaDays / 8; // Convert hours to days (1 day = 8 hours)
 
         // Add to used leave (based on the type of leave)
