@@ -66,6 +66,15 @@ public function viewBalance()
 
     $data['title'] = 'Leave Balance';
     $employee_id = $this->session->userdata('employee_id');
+    
+    if (!$employee_id) {
+        // If employee ID is not found in the session
+        $data['error'] = 'Employee ID not found. Please log in again.';
+        $this->load->view('apps/templates/header', $data);
+        $this->load->view('apps/leave/leavebalance', $data);
+        $this->load->view('apps/templates/footer');
+        return;
+    }
 
     $currentDate = date('Y-m-d');
 
@@ -80,6 +89,12 @@ public function viewBalance()
         $this->load->view('apps/templates/footer');
         return;
     }
+        // Get the latest school year
+        $latestSchoolYear = $this->LeaveModel->getLatestSchoolYear();
+
+        // Pass it to the view
+        $data['latestSchoolYear'] = $latestSchoolYear;
+
 
     $startYear = date('Y', strtotime($schoolYear['start_date']));
     $endYear = date('Y', strtotime($schoolYear['end_date']));
@@ -93,9 +108,13 @@ public function viewBalance()
         $leaveBalances = [];
     }
 
-    // Compute used leave for SL (Sick Leave) and VL (Vacation Leave)
+    // Initialize variables for used leaves and CDLD count
     $usedSL = 0;
     $usedVL = 0;
+    $cdldVlCount = 0;  // Count for CDLD leaves
+
+    // Get the count of CDLD VL leaves for the employee within the current school year range
+    $cdldVlCount = $this->LeaveModel->countCdldVlLeavesForEmployee($employee_id, $startYear, $endYear);
 
     // Get all approved leave records for the employee within the current school year range
     $approvedLeaves = $this->LeaveModel->getApprovedLeavesForEmployee($employee_id, $startYear, $endYear);
@@ -109,9 +128,15 @@ public function viewBalance()
         if ($leave['lvaType'] == 'SL') {
             $usedSL += $daysUsed;
         } elseif ($leave['lvaType'] == 'VL') {
-            $usedVL += $daysUsed;
+            // Check if lvaReason exists and is not null
+            if (isset($leave['lvaReason']) && strtolower($leave['lvaReason']) != 'cdld') {
+                $usedVL += $daysUsed;
+            }
         }
     }
+
+    // Log the amount of used VL being passed to the view
+    log_message('debug', "Used VL (Vacation Leave) being passed to the view: {$usedVL} days");
 
     // Update the leave balances with the used SL and VL
     if ($leaveBalances) {
@@ -122,6 +147,16 @@ public function viewBalance()
         $leaveBalances['used_VL'] = $usedVL;
     }
 
+    // Get user details using the getuserDetails function
+    $userDetails = $this->LeaveModel->getuserDetails($employee_id);  // Fetch user details from LeaveModel
+    if ($userDetails) {
+        $data['userDetails'] = $userDetails;  // Add user details to the data array
+    } else {
+        $data['error'] = 'Unable to fetch user details.';
+    }
+
+    // Pass CDLD VL count to the view
+    $data['cdldVlCount'] = $cdldVlCount;
     $data['leaveBalances'] = $leaveBalances;
 
     // Load the views
@@ -129,7 +164,6 @@ public function viewBalance()
     $this->load->view('apps/leave/leavebalance', $data);
     $this->load->view('apps/templates/footer');
 }
-
 
 public function submitLeave()
 {
@@ -306,6 +340,16 @@ public function submitLeave()
             return;
         }
     
+        // Get the JSON payload from the request body
+        $data = json_decode($this->input->raw_input_stream, true);  // Decode the JSON data
+    
+        // Check if the comment is set
+        $comment = isset($data['comment']) ? $data['comment'] : '';
+        if (empty($comment)) {
+            echo json_encode(['status' => 'error', 'message' => 'Comment is required.']);
+            return;
+        }
+    
         $this->load->model('LeaveModel');
     
         // Get the current logged-in user's employee_id
@@ -331,9 +375,8 @@ public function submitLeave()
         // Combine first_name and last_name to form the full name
         $approvedBy = $user->first_name . ' ' . $user->last_name;
     
-      
-        // Approve the leave in the database
-        $result = $this->LeaveModel->approveLeave($filedNo, $approvedBy);
+        // Approve the leave in the database with the comment and approvedBy info
+        $result = $this->LeaveModel->approveLeave($filedNo, $approvedBy, $comment);
     
         if ($result) {
             // Return success response as JSON
@@ -342,7 +385,7 @@ public function submitLeave()
             // Return failure response as JSON
             echo json_encode(['status' => 'error', 'message' => 'Failed to approve the leave request.']);
         }
-    }
+    }     
     
     public function disapproveLeave($filedNo)
     {

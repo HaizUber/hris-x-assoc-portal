@@ -91,32 +91,34 @@ class LeaveModel extends CI_Model
     return false;
 }
 
-    public function approveLeave($filedNo, $approvedBy)
-    {
-        // Check if the leave exists and is currently pending before attempting update
+public function approveLeave($filedNo, $approvedBy, $comment)
+{
+    // Check if the leave exists and is currently pending before attempting update
+    $this->associates_db->where('lvaFiledNo', $filedNo);
+    $this->associates_db->where('lvaStatus', 'PENDING'); // Ensure only pending leaves are approved
+    $leaveExists = $this->associates_db->count_all_results('tblleavefile') > 0;
+
+    if ($leaveExists) {
+        // Proceed with update if leave exists and is pending
+        $this->associates_db->set('lvaStatus', 'APPROVED');  // Set status to approved
+        $this->associates_db->set('lvaApprovedBy', $approvedBy); // Set the approved by information
+        $this->associates_db->set('lvaComments', $comment);  // Set the comment
         $this->associates_db->where('lvaFiledNo', $filedNo);
-        $this->associates_db->where('lvaStatus', 'PENDING'); // Ensure only pending leaves are approved
-        $leaveExists = $this->associates_db->count_all_results('tblleavefile') > 0;
 
-        if ($leaveExists) {
-            // Proceed with update if leave exists and is pending
-            $this->associates_db->set('lvaStatus', 'APPROVED');  // Set status to approved
-            $this->associates_db->set('lvaApprovedBy', $approvedBy); // Set the approved by information
-            $this->associates_db->where('lvaFiledNo', $filedNo);
-            if ($this->associates_db->update('tblleavefile')) {
-                $this->audit_trail('tblleavefile'); // Log the approval action in the audit trail
-                return true;
-            } else {
-                // Log the error for debugging with the database error message
-                log_message('error', 'Failed to approve leave with filed_no: ' . $filedNo . '. DB Error: ' . $this->associates_db->error()['message']);
-                return false;
-            }
+        if ($this->associates_db->update('tblleavefile')) {
+            $this->audit_trail('tblleavefile'); // Log the approval action in the audit trail
+            return true;
+        } else {
+            // Log the error for debugging with the database error message
+            log_message('error', 'Failed to approve leave with filed_no: ' . $filedNo . '. DB Error: ' . json_encode($this->associates_db->error()));
+            return false;
         }
-
-        // Log if leave is not found or is not in pending status
-        log_message('error', 'Leave not found or is not pending for filed_no: ' . $filedNo);
-        return false;
     }
+
+    // Log if leave is not found or is not pending status
+    log_message('error', 'Leave not found or is not pending for filed_no: ' . $filedNo);
+    return false;
+}
 
     public function disapproveLeave($filedNo, $comment)
     {
@@ -198,6 +200,21 @@ class LeaveModel extends CI_Model
     return $query->row_array();  // This will return start_date and end_date
 }
 
+public function getLatestSchoolYear()
+{
+    // Query the database to find the most recent school year based on end_date
+    $this->associates_db->select('schoolyear');
+    $this->associates_db->from('tblleavebalance');
+    $this->associates_db->order_by('end_date', 'DESC');  // Order by end_date in descending order
+    $this->associates_db->limit(1);  // Limit to only the most recent school year
+    $query = $this->associates_db->get();
+
+    // Return the schoolyear of the most recent entry
+    $result = $query->row_array();
+    return $result ? $result['schoolyear'] : null;  // Return schoolyear or null if no data found
+}
+
+
 public function getApprovedLeavesForEmployee($employee_id, $startYear, $endYear)
 {
     // Get the start_date and end_date for the given school year
@@ -216,7 +233,7 @@ public function getApprovedLeavesForEmployee($employee_id, $startYear, $endYear)
     $endDate = $schoolYearData['end_date'];
 
     // Get all approved leave records for the employee within the school year range
-    $this->associates_db->select('lvaDays, lvaType, lvaDateFiled');
+    $this->associates_db->select('lvaDays, lvaType, lvaReason, lvaDateFiled');
     $this->associates_db->from('tblleavefile');
     $this->associates_db->where('empID', $employee_id);
     $this->associates_db->where('lvaStatus', 'APPROVED');
@@ -225,46 +242,123 @@ public function getApprovedLeavesForEmployee($employee_id, $startYear, $endYear)
     $this->associates_db->where('lvaDateFiled >=', $startDate);
     $this->associates_db->where('lvaDateFiled <=', $endDate);
     
+    // Filter for only SL and VL (excluding VL with lvaReason 'cdld')
+    $this->associates_db->group_start(); // Start of OR condition group
+    $this->associates_db->where('lvaType', 'SL'); // SL type leaves
+    $this->associates_db->or_where('lvaType', 'VL'); // VL type leaves
+    $this->associates_db->group_end(); // End of OR condition group
+
+    // Exclude VL records where lvaReason is 'cdld' (case insensitive)
+    $this->associates_db->where('NOT (lvaType = "VL" AND LOWER(lvaReason) = "cdld")');
+
     $query = $this->associates_db->get();
 
     return $query->result_array();
 }
 
+public function countCdldVlLeavesForEmployee($employee_id, $startYear, $endYear)
+{
+    // Get the school year based on startYear and endYear
+    $schoolYear = "{$startYear}{$endYear}";
+
+    //query the leave balance table to get the start and end date for the school year
+    $this->associates_db->select('start_date, end_date');
+    $this->associates_db->from('tblleavebalance');
+    $this->associates_db->where('schoolyear', $schoolYear);
+    $leaveBalanceQuery = $this->associates_db->get();
+    
+    if ($leaveBalanceQuery->num_rows() === 0) {
+        // If no leave balance record is found for the school year, return 0
+        return 0;
+    }
+    
+    // Fetch the start_date and end_date from the leave balance record
+    $leaveBalance = $leaveBalanceQuery->row();
+    $startDate = $leaveBalance->start_date;
+    $endDate = $leaveBalance->end_date;
+
+    //query the leave file table to get approved leaves within the leave balance range
+    $this->associates_db->select('lvaDays, lvaReason');
+    $this->associates_db->from('tblleavefile');
+    $this->associates_db->where('empID', $employee_id);
+    $this->associates_db->where('lvaStatus', 'APPROVED');
+    
+    // Filter for only VL leaves with the reason 'cdld'
+    $this->associates_db->where('lvaType', 'VL');
+    $this->associates_db->where('LOWER(lvaReason)', 'cdld');
+    
+    // Ensure the leave dates fall within the start and end date from the leave balance
+    $this->associates_db->where('lvaDateFiled >=', $startDate);
+    $this->associates_db->where('lvaDateFiled <=', $endDate);
+    
+    // Execute the query
+    $query = $this->associates_db->get();
+
+    $totalCdldDays = 0;
+
+    // Loop through each leave record and sum up the days (lvaDays divided by 8 to convert hours to days)
+    foreach ($query->result_array() as $leave) {
+        // Convert lvaDays (in hours) to days (1 day = 8 hours)
+        $totalCdldDays += $leave['lvaDays'] / 8;
+    }
+
+    return $totalCdldDays;  // Return the total number of CDLD leave days
+}
+
+
 
 public function updateLeaveBalance($employee_id, $schoolYearRange, $usedSL, $usedVL)
 {
+    // Log function entry and parameters
+    log_message('debug', "Entering updateLeaveBalance with employee_id: {$employee_id}, schoolYearRange: {$schoolYearRange}, usedSL: {$usedSL}, usedVL: {$usedVL}");
+
+    // Count the CDLD leaves for the employee within the given school year
+    $cdldCount = $this->countCdldVlLeavesForEmployee($employee_id, substr($schoolYearRange, 0, 4), substr($schoolYearRange, 4, 4));
+
+    // Log the CDLD leave count
+    log_message('debug', "CDLD leave count for employee {$employee_id} in school year {$schoolYearRange}: {$cdldCount}");
+
     // Check if leave balance entry exists for this employee and school year
     $this->associates_db->where('empID', $employee_id);
     $this->associates_db->where('schoolyear', $schoolYearRange);
     $query = $this->associates_db->get('tblleavebalance');
 
     if ($query->num_rows() > 0) {
-        // Update the used leave values if the record exists
+        // Update the used leave values and cdld_leave if the record exists
         $data = array(
             'used_VL' => $usedVL,
-            'used_SL' => $usedSL
+            'used_SL' => $usedSL,
+            'cdld_leave' => $cdldCount
         );
 
         $this->associates_db->where('empID', $employee_id);
         $this->associates_db->where('schoolyear', $schoolYearRange);
         $this->associates_db->update('tblleavebalance', $data);
+
+        // Log the update operation
+        log_message('debug', "Updated leave balance for employee {$employee_id} in school year {$schoolYearRange}.");
     } else {
+        // Insert a new record if it doesn't exist
         $data = array(
             'empID' => $employee_id,
             'schoolyear' => $schoolYearRange,
             'used_VL' => $usedVL,
-            'used_SL' => $usedSL
+            'used_SL' => $usedSL,
+            'cdld_leave' => $cdldCount
         );
 
         $this->associates_db->insert('tblleavebalance', $data);
+
+        // Log the insert operation
+        log_message('debug', "Inserted new leave balance record for employee {$employee_id} in school year {$schoolYearRange}.");
     }
 }
 
-public function getLeaveDetails($filedNo)
+public function getuserDetails($employee_id)
 {
-    $this->associates_db->select('lvaDateTo, lvaDateFrom, empID, lvaType'); 
-    $this->associates_db->where('lvaFiledNo', $filedNo);
-    $query = $this->associates_db->get('tblleavefile');
+    $this->associates_db->select('last_name, first_name, middle_name'); 
+    $this->associates_db->where('employee_id', $employee_id);
+    $query = $this->associates_db->get('associates');
     return $query->row_array(); 
 }
 

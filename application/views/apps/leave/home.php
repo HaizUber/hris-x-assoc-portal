@@ -284,6 +284,10 @@ document.addEventListener('DOMContentLoaded', function () {
             // Move to the next day
             currentDay.setDate(currentDay.getDate() + 1);
         }
+            // Deduct 1 hour if total hours exceed 6 hours
+            if (totalHours > 6) {
+            totalHours -= 1;
+        }
     } else {
         // Calculate the total hours for full days
         const days = (end - start) / (1000 * 60 * 60 * 24) + 1; // Calculate full days
