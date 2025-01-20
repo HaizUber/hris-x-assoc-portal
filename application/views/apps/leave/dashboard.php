@@ -73,7 +73,7 @@
 <!-- Employee Leave Balance Card -->
 <?php if ($isHR): ?>
     <div class="card text-center" style="width: 16rem;">
-        <a href="<?php echo base_url('leave/approve') ?>">
+        <a href="<?php echo base_url('COMINGSOON') ?>">
             <img class="card-img-top" src="<?php echo base_url('assets/employee.png'); ?>" alt="Employee Leave Balance" style="padding: 20px;">
             <div class="card-body">
                 <h6 class="card-text font-weight-bold">Employee Leave Balance</h6>

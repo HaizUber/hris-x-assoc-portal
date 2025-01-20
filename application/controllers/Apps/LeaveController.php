@@ -89,6 +89,12 @@ public function viewBalance()
         $this->load->view('apps/templates/footer');
         return;
     }
+        // Get the latest school year
+        $latestSchoolYear = $this->LeaveModel->getLatestSchoolYear();
+
+        // Pass it to the view
+        $data['latestSchoolYear'] = $latestSchoolYear;
+
 
     $startYear = date('Y', strtotime($schoolYear['start_date']));
     $endYear = date('Y', strtotime($schoolYear['end_date']));
@@ -334,6 +340,16 @@ public function submitLeave()
             return;
         }
     
+        // Get the JSON payload from the request body
+        $data = json_decode($this->input->raw_input_stream, true);  // Decode the JSON data
+    
+        // Check if the comment is set
+        $comment = isset($data['comment']) ? $data['comment'] : '';
+        if (empty($comment)) {
+            echo json_encode(['status' => 'error', 'message' => 'Comment is required.']);
+            return;
+        }
+    
         $this->load->model('LeaveModel');
     
         // Get the current logged-in user's employee_id
@@ -359,9 +375,8 @@ public function submitLeave()
         // Combine first_name and last_name to form the full name
         $approvedBy = $user->first_name . ' ' . $user->last_name;
     
-      
-        // Approve the leave in the database
-        $result = $this->LeaveModel->approveLeave($filedNo, $approvedBy);
+        // Approve the leave in the database with the comment and approvedBy info
+        $result = $this->LeaveModel->approveLeave($filedNo, $approvedBy, $comment);
     
         if ($result) {
             // Return success response as JSON
@@ -370,7 +385,7 @@ public function submitLeave()
             // Return failure response as JSON
             echo json_encode(['status' => 'error', 'message' => 'Failed to approve the leave request.']);
         }
-    }
+    }     
     
     public function disapproveLeave($filedNo)
     {

@@ -333,42 +333,65 @@
 <script>
     // Function to approve leave
     function approveLeave(fileNo) {
-        if (confirm('Are you sure you want to approve this leave request?')) {
-            fetch('approveLeave/' + fileNo, {
-                method: 'POST',
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    alert('Leave request has been approved.');
-                    const row = document.querySelector(`tr[data-filedno="${fileNo}"]`);
-                    if (row) {
-                        const statusCell = row.querySelector('.status');
-                        const approveButton = row.querySelector('.approve-btn'); // Get the approve button
-                        const disapproveButton = row.querySelector('.disapprove-btn'); // Get the disapprove button
+    console.log('approveLeave function called'); // Check if the function is being triggered
 
-                        // Update status text and class
-                        statusCell.textContent = 'APPROVED';
-                        statusCell.classList.remove('pending');
-                        statusCell.classList.add('approved');
+    const comment = prompt('Please provide a comment for approving this leave:');
+    console.log('Prompt displayed for comment');
+    
+    if (comment) {
+        console.log('Comment entered:', comment); // Log the comment entered by the user
+        fetch('approveLeave/' + fileNo, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                comment: comment, // Send the comment
+            }),
+        })
+        .then(response => {
+            console.log('Received response:', response); // Log the response received
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data); // Log the received data
 
-                        // Remove the approve and disapprove buttons
-                        if (approveButton) {
-                            approveButton.style.display = 'none';
-                        }
-                        if (disapproveButton) {
-                            disapproveButton.style.display = 'none'; 
-                        }
+            if (data.status === 'success') {
+                alert('Leave request has been approved.');
+                console.log('Leave request approved successfully for filedNo:', fileNo);
+
+                const row = document.querySelector(`tr[data-filedno="${fileNo}"]`);
+                if (row) {
+                    const statusCell = row.querySelector('.status');
+                    const approveButton = row.querySelector('.approve-btn'); 
+                    const disapproveButton = row.querySelector('.disapprove-btn'); 
+
+                    statusCell.textContent = 'APPROVED';
+                    statusCell.classList.remove('pending');
+                    statusCell.classList.add('approved');
+
+                    if (approveButton) {
+                        approveButton.style.display = 'none';
+                        console.log('Approved button hidden for filedNo:', fileNo);
                     }
-                } else {
-                    alert('Failed to approve leave request. Please try again.');
+                    if (disapproveButton) {
+                        disapproveButton.style.display = 'none'; 
+                        console.log('Disapprove button hidden for filedNo:', fileNo);
+                    }
                 }
-            })
-            .catch(error => {
-                alert('An error occurred. Please try again.');
-            });
-        }
+            } else {
+                alert('Failed to approve leave request. Please try again.');
+                console.log('Approval failed for filedNo:', fileNo);
+            }
+        })
+        .catch(error => {
+            alert('An error occurred. Please try again.');
+            console.error('Error during approveLeave fetch request for filedNo:', fileNo, error);
+        });
+    } else {
+        console.log('User did not provide a comment for approval.');
     }
+}
 
     function disapproveLeave(fileNo) {
         const comment = prompt('Please provide a comment for disapproving this leave:');

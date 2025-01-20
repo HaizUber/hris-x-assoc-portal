@@ -36,7 +36,7 @@
 </head>
 <body>
     <div class="table-container">
-        <h2>Leave Balance for S.Y: <?= $leaveBalances['schoolyear'] ?? 'N/A'; ?></h2>
+    <h2>Leave Balance for S.Y: <?= !empty($leaveBalances['schoolyear']) ? $leaveBalances['schoolyear'] : $latestSchoolYear; ?></h2>
 
         <!-- Display Sick Leave Balance -->
         <?php if (isset($leaveBalances['SL_Balance']) && $leaveBalances['SL_Balance'] !== null): ?>
@@ -91,7 +91,30 @@
 
         </table>
         <?php else: ?>
-        <p>No sick leave balance data found for this employee.</p>
+        <!-- Table with values set to 0 when data is not found -->
+        <h3>Sick Leave</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Employee Name</th>
+                    <th>Leave Balance</th>
+                    <th>Leave Used</th>
+                    <th>Remaining Leave</th>
+                    <th>Sick Leave without Pay</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><?= $_SESSION['employee_id']; ?></td>
+                    <td><?= isset($userDetails) ? $userDetails['last_name'] . ', ' . $userDetails['first_name'] . ' ' . $userDetails['middle_name'] : 'N/A'; ?></td>
+                    <td>0 day</td>
+                    <td>0 day</td>
+                    <td>0 day</td>
+                    <td>0 day</td>
+                </tr>
+            </tbody>
+        </table>
         <?php endif; ?>
 
         <!-- Display Vacation Leave Balance -->
@@ -170,13 +193,34 @@
     </tr>
 </tbody>
 
-
-
-
-
         </table>
         <?php else: ?>
-        <p>No vacation leave balance data found for this employee.</p>
+        <!-- Table with values set to 0 when data is not found -->
+        <h3>Vacation Leave</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Employee Name</th>
+                    <th>Leave Balance</th>
+                    <th>Leave Used</th>
+                    <th>CDLD</th> <!-- CDLD column here -->
+                    <th>Remaining Leave</th>
+                    <th>Vacation Leave without Pay</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><?= $_SESSION['employee_id']; ?></td>
+                    <td><?= isset($userDetails) ? $userDetails['last_name'] . ', ' . $userDetails['first_name'] . ' ' . $userDetails['middle_name'] : 'N/A'; ?></td>
+                    <td>0 day</td>
+                    <td>0 day</td>
+                    <td>0 day</td>
+                    <td>0 day</td>
+                    <td>0 day</td>
+                </tr>
+            </tbody>
+        </table>
         <?php endif; ?>
     </div>
 </body>
