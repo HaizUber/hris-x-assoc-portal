@@ -71,6 +71,9 @@ $route['leave/approveLeave/(:num)'] = 'apps/LeaveController/approveLeave/$1';
 $route['leave/disapproveLeave/(:num)'] = 'apps/LeaveController/disapproveLeave/$1';
 
 $route['leave/balance'] = 'apps/LeaveController/viewBalance';
+$route['leave/sick_leave_history/(:num)'] = 'apps/LeaveController/sickLeaveHistory/$1';
+$route['leave/vacation_leave_history/(:num)'] = 'apps/LeaveController/vacationLeaveHistory/$1';
+
 
 
 

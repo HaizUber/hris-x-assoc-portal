@@ -211,9 +211,8 @@ public function getLatestSchoolYear()
 
     // Return the schoolyear of the most recent entry
     $result = $query->row_array();
-    return $result ? $result['schoolyear'] : null;  // Return schoolyear or null if no data found
+    return $result ? $result['schoolyear'] : null;  
 }
-
 
 public function getApprovedLeavesForEmployee($employee_id, $startYear, $endYear)
 {
@@ -304,8 +303,6 @@ public function countCdldVlLeavesForEmployee($employee_id, $startYear, $endYear)
 
     return $totalCdldDays;  // Return the total number of CDLD leave days
 }
-
-
 
 public function updateLeaveBalance($employee_id, $schoolYearRange, $usedSL, $usedVL)
 {

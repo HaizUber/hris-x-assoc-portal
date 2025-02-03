@@ -89,7 +89,7 @@ public function viewBalance()
         $this->load->view('apps/templates/footer');
         return;
     }
-        // Get the latest school year
+        // Get the latest school year if year is N/A
         $latestSchoolYear = $this->LeaveModel->getLatestSchoolYear();
 
         // Pass it to the view
@@ -162,6 +162,104 @@ public function viewBalance()
     // Load the views
     $this->load->view('apps/templates/header', $data);
     $this->load->view('apps/leave/leavebalance', $data);
+    $this->load->view('apps/templates/footer');
+}
+
+public function sickLeaveHistory($employee_id)
+{
+    // Get the current date
+    $currentDate = date('Y-m-d');  
+    
+    // Get the school year based on the current date
+    $schoolYear = $this->LeaveModel->getSchoolYearByDate($currentDate);
+
+    // Check if we got the school year
+    if ($schoolYear) {
+        $startYear = $schoolYear['start_date'];  
+        $endYear = $schoolYear['end_date'];      
+    } else {
+        // Set an error message if the school year is not found
+        $data['errorMessage'] = 'The school year is missing.';
+        $this->load->view('apps/templates/header', $data);
+        $this->load->view('apps/leave/sick_leave_history_error', $data);  // Load a different view for error display
+        $this->load->view('apps/templates/footer');
+        return;  // Exit the function if no school year is found
+    }
+
+    // Use the getAllLeaveApplications function to get all leave applications
+    $allLeaveApplications = $this->LeaveModel->getAllLeaveApplications();
+
+    // Filter the sick leaves (SL) for the given employee and approved status
+    $sickLeaves = array_filter($allLeaveApplications, function($leave) use ($employee_id, $startYear, $endYear) {
+        return $leave['empID'] == $employee_id
+            && $leave['lvaStatus'] == 'APPROVED'
+            && $leave['lvaType'] == 'SL'  // Filter only Sick Leave (SL)
+            && $leave['lvaDateFiled'] >= $startYear
+            && $leave['lvaDateFiled'] <= $endYear;
+    });
+
+    // Log the school year details for debugging
+    log_message('debug', "School Year: Start Date - $startYear, End Date - $endYear");
+
+    // Log the actual content of the sick leaves records
+    log_message('debug', 'Sick Leaves Data: ' . print_r($sickLeaves, true));
+
+    // Pass data to the view
+    $data['title'] = 'Sick Leave History';
+    $data['sickLeaves'] = $sickLeaves;
+
+    // Load the view
+    $this->load->view('apps/templates/header', $data);
+    $this->load->view('apps/leave/sick_leave_history', $data);  
+    $this->load->view('apps/templates/footer');
+}
+
+public function vacationLeaveHistory($employee_id)
+{
+    // Get the current date
+    $currentDate = date('Y-m-d');  
+    
+    // Get the school year based on the current date
+    $schoolYear = $this->LeaveModel->getSchoolYearByDate($currentDate);
+
+    // Check if we got the school year
+    if ($schoolYear) {
+        $startYear = $schoolYear['start_date'];  
+        $endYear = $schoolYear['end_date'];      
+    } else {
+        // Set an error message if the school year is not found
+        $data['errorMessage'] = 'The school year is missing.';
+        $this->load->view('apps/templates/header', $data);
+        $this->load->view('apps/leave/vacation_leave_history_error', $data);  // Load a different view for error display
+        $this->load->view('apps/templates/footer');
+        return;  // Exit the function if no school year is found
+    }
+
+    // Use the getAllLeaveApplications function to get all leave applications
+    $allLeaveApplications = $this->LeaveModel->getAllLeaveApplications();
+
+    // Filter the vacation leaves (VL) for the given employee and approved status
+    $vacationLeaves = array_filter($allLeaveApplications, function($leave) use ($employee_id, $startYear, $endYear) {
+        return $leave['empID'] == $employee_id
+            && $leave['lvaStatus'] == 'APPROVED'
+            && $leave['lvaType'] == 'VL'  // Filter only Vacation Leave (VL)
+            && $leave['lvaDateFiled'] >= $startYear
+            && $leave['lvaDateFiled'] <= $endYear;
+    });
+
+    // Log the school year details for debugging
+    log_message('debug', "School Year: Start Date - $startYear, End Date - $endYear");
+
+    // Log the actual content of the vacation leaves records
+    log_message('debug', 'Vacation Leaves Data: ' . print_r($vacationLeaves, true));
+
+    // Pass data to the view
+    $data['title'] = 'Vacation Leave History';
+    $data['vacationLeaves'] = $vacationLeaves;
+
+    // Load the view
+    $this->load->view('apps/templates/header', $data);
+    $this->load->view('apps/leave/vacation_leave_history', $data);  
     $this->load->view('apps/templates/footer');
 }
 
